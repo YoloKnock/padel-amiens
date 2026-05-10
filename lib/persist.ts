@@ -126,6 +126,9 @@ export async function persistScrapedTournaments(
   }
 
   // 5. Upsert des tournois avec leur fingerprint anti-doublon
+  // registration_url = lien fiche tournoi sur Padel Magazine, qui contient
+  // lui-même le bouton officiel vers Ten'Up. On ne stocke pas l'URL Ten'Up
+  // directement parce qu'elle n'est pas exposée dans la page liste.
   const tournamentsToUpsert = result.tournaments.map((t) => ({
     club_id: t.club.id,
     category: t.category,
@@ -134,7 +137,7 @@ export async function persistScrapedTournaments(
     start_date: t.start_date,
     end_date: null,
     referee: t.referee,
-    registration_url: null,
+    registration_url: t.detail_url,
     source: 'padelmagazine',
     fingerprint: generateFingerprint(t.club.id, t.start_date, t.category, t.gender),
   }));
