@@ -11,6 +11,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
@@ -68,9 +69,14 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
         )}
       </div>
 
-      {/* Titre du tournoi */}
+      {/* Titre du tournoi — cliquable vers la page détail interne (SEO + UX) */}
       <h3 className="font-semibold text-base mb-3 line-clamp-2">
-        {tournament.title}
+        <Link
+          href={`/tournoi/${tournament.id}`}
+          className="hover:text-emerald-700 transition-colors after:absolute after:inset-0 after:content-['']"
+        >
+          {tournament.title}
+        </Link>
       </h3>
 
       {/* Date */}
@@ -98,8 +104,9 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
         </div>
       )}
 
-      {/* Contacts */}
-      <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5">
+      {/* Contacts — relative z-10 pour rester cliquables par-dessus
+          le stretched link du titre qui couvre toute la card */}
+      <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 space-y-1.5">
         {tournament.club_email && (
           <a
             href={`mailto:${tournament.club_email}`}
@@ -120,13 +127,14 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
         )}
       </div>
 
-      {/* CTA : redirection vers la fiche tournoi (Padel Magazine puis Ten'Up) */}
+      {/* CTA : redirection vers la fiche tournoi (Padel Magazine puis Ten'Up)
+          relative z-10 pour passer au-dessus du stretched link */}
       {tournament.registration_url && (
         <a
           href={tournament.registration_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
+          className="relative z-10 mt-4 inline-flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
         >
           Voir et s&apos;inscrire
           <ExternalLink className="w-3.5 h-3.5" />
