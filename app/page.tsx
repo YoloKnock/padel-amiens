@@ -4,6 +4,7 @@
 // Server component qui fetch les tournois côté serveur (SEO + perf).
 // Les filtres interactifs sont délégués à <FilterPanel /> en client component.
 
+import Link from 'next/link';
 import { MapPin, Trophy, Calendar } from 'lucide-react';
 
 import { TournamentList } from '@/components/tournament-list';
@@ -105,6 +106,11 @@ export default async function HomePage() {
             Ten&apos;Up
           </a>
           .
+        </p>
+        <p className="mt-4">
+          <Link href="/mentions-legales" className="underline hover:text-foreground">
+            Mentions légales
+          </Link>
         </p>
       </footer>
     </div>

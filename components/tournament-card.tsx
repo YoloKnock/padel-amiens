@@ -6,13 +6,15 @@
 // - Date + jour de la semaine
 // - Nom du club + distance
 // - Contact (email, tel) si dispo
+// - Bouton CTA "Voir / S'inscrire" qui renvoie vers la fiche Padel Magazine
+//   (où l'utilisateur trouve le lien d'inscription officiel Ten'Up)
 
 'use client';
 
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { CalendarDays, MapPin, Mail, Phone, User } from 'lucide-react';
+import { CalendarDays, ExternalLink, MapPin, Mail, Phone, User } from 'lucide-react';
 
 import { CATEGORY_COLORS } from '@/lib/constants';
 import { cn, formatPhone } from '@/lib/utils';
@@ -117,6 +119,19 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
           </a>
         )}
       </div>
+
+      {/* CTA : redirection vers la fiche tournoi (Padel Magazine puis Ten'Up) */}
+      {tournament.registration_url && (
+        <a
+          href={tournament.registration_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
+        >
+          Voir et s&apos;inscrire
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      )}
     </motion.article>
   );
 }

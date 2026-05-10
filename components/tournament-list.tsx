@@ -26,10 +26,30 @@ const DISTANCE_OPTIONS = [
   { value: 100, label: '< 100 km' },
 ];
 
+// Options de période — en nombre de jours à partir d'aujourd'hui
+// null = pas de limite haute (tous les tournois à venir)
+const PERIOD_OPTIONS = [
+  { value: null, label: 'Toutes' },
+  { value: 7, label: 'Cette semaine' },
+  { value: 30, label: 'Ce mois' },
+  { value: 90, label: '3 prochains mois' },
+];
+
 export function TournamentList({ tournaments }: TournamentListProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
   const [maxDistance, setMaxDistance] = useState<number | null>(null);
+  const [maxDays, setMaxDays] = useState<number | null>(null);
+
+  // Date butoir pour le filtre période : aujourd'hui + maxDays.
+  // Calculée une fois par changement de filtre (et pas dans chaque .filter()).
+  const periodCutoff = useMemo(() => {
+    if (maxDays === null) return null;
+    const cutoff = new Date();
+    cutoff.setHours(23, 59, 59, 999);
+    cutoff.setDate(cutoff.getDate() + maxDays);
+    return cutoff;
+  }, [maxDays]);
 
   // Filtrage mémoïsé pour éviter de recalculer à chaque render
   const filtered = useMemo(() => {
@@ -39,16 +59,26 @@ export function TournamentList({ tournaments }: TournamentListProps) {
       if (maxDistance !== null && t.distance_km !== null && t.distance_km > maxDistance) {
         return false;
       }
+      if (periodCutoff !== null) {
+        // start_date est ISO YYYY-MM-DD, new Date() le parse correctement
+        const tournamentDate = new Date(t.start_date);
+        if (tournamentDate > periodCutoff) return false;
+      }
       return true;
     });
-  }, [tournaments, selectedCategory, selectedGender, maxDistance]);
+  }, [tournaments, selectedCategory, selectedGender, maxDistance, periodCutoff]);
 
-  const hasFilters = selectedCategory || selectedGender || maxDistance !== null;
+  const hasFilters =
+    selectedCategory !== null ||
+    selectedGender !== null ||
+    maxDistance !== null ||
+    maxDays !== null;
 
   function resetFilters() {
     setSelectedCategory(null);
     setSelectedGender(null);
     setMaxDistance(null);
+    setMaxDays(null);
   }
 
   return (
@@ -106,6 +136,19 @@ export function TournamentList({ tournaments }: TournamentListProps) {
               key={String(opt.value)}
               active={maxDistance === opt.value}
               onClick={() => setMaxDistance(opt.value)}
+            >
+              {opt.label}
+            </FilterChip>
+          ))}
+        </FilterGroup>
+
+        {/* Filtre Période */}
+        <FilterGroup label="Période">
+          {PERIOD_OPTIONS.map((opt) => (
+            <FilterChip
+              key={String(opt.value)}
+              active={maxDays === opt.value}
+              onClick={() => setMaxDays(opt.value)}
             >
               {opt.label}
             </FilterChip>
