@@ -5,13 +5,15 @@
 // Les filtres interactifs sont délégués à <FilterPanel /> en client component.
 
 import Link from 'next/link';
-import { MapPin, Trophy, Calendar } from 'lucide-react';
+import { MapPin, Trophy, Calendar, Sparkles } from 'lucide-react';
 
+import { EventCard } from '@/components/event-card';
 import { TournamentList } from '@/components/tournament-list';
 import { Header } from '@/components/header';
 import { createAdminClient } from '@/lib/supabase';
 import { distanceFromAmiens } from '@/lib/geo';
 import type { TournamentWithClub } from '@/types/tournament';
+import type { EventWithClub } from '@/types/event';
 
 // Revalidation toutes les 5 minutes (les tournois changent rarement)
 export const revalidate = 300;
@@ -39,8 +41,38 @@ async function getTournaments(): Promise<(TournamentWithClub & { distance_km: nu
   }));
 }
 
+/**
+ * Récupère les events non-homologués publiés (Americano, portes ouvertes, etc.)
+ * Si la table n'existe pas encore (DB pas migrée), on retourne vide sans casser.
+ */
+async function getEvents(): Promise<(EventWithClub & { distance_km: number | null })[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('upcoming_events')
+      .select('*')
+      .order('start_date', { ascending: true })
+      .limit(50);
+
+    if (error) {
+      // Si la vue n'existe pas (migration pas encore exécutée), on ignore
+      console.warn('[page] upcoming_events indisponible:', error.message);
+      return [];
+    }
+
+    return (data ?? []).map((e) => ({
+      ...e,
+      distance_km: distanceFromAmiens(e.club_lat, e.club_lng),
+    }));
+  } catch (error) {
+    console.warn('[page] Erreur fetch events:', error);
+    return [];
+  }
+}
+
 export default async function HomePage() {
-  const tournaments = await getTournaments();
+  // Fetch parallèle des deux sources pour ne pas doubler la latence
+  const [tournaments, events] = await Promise.all([getTournaments(), getEvents()]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -78,9 +110,30 @@ export default async function HomePage() {
       </section>
 
       {/* Liste des tournois (composant client pour les filtres interactifs) */}
-      <section className="container mx-auto px-4 pb-20">
+      <section className="container mx-auto px-4 pb-12">
         <TournamentList tournaments={tournaments} />
       </section>
+
+      {/* Section Americano & événements non-homologués (visible seulement s'il
+          y a au moins un event publié — évite une section vide qui fait
+          "site abandonné") */}
+      {events.length > 0 && (
+        <section className="container mx-auto px-4 pb-20">
+          <div className="flex items-center gap-2 mb-6">
+            <Sparkles className="w-5 h-5 text-amber-600" />
+            <h2 className="text-2xl font-bold">Americano & événements</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">
+            Tournois Americano, portes ouvertes, initiations et stages organisés
+            par les clubs locaux. Hors calendrier FFT officiel.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {events.map((event, i) => (
+              <EventCard key={event.id} event={event} index={i} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Footer minimal */}
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
