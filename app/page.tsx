@@ -94,7 +94,13 @@ export default async function HomePage() {
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Le calendrier complet des P25, P50, P100 et plus dans la Somme et les Hauts-de-France.
-            Filtré par catégorie, genre et distance depuis Cagny.
+            Filtré par catégorie, genre et distance — depuis chez toi si tu actives la géoloc.
+          </p>
+
+          {/* Mention claire de la zone couverte actuellement */}
+          <p className="text-xs text-muted-foreground/80 italic">
+            Actuellement pour Amiens et la région Hauts-de-France · D&apos;autres
+            zones arriveront selon vos retours
           </p>
 
           {/* CTA secondaire vers le widget de recherche de creneau */}

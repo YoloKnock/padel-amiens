@@ -6,18 +6,17 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Filter, MapPin, Search, X } from 'lucide-react';
-import { toast } from 'sonner';
 
+import { GeolocationBanner } from './geolocation-banner';
 import { TournamentCard } from './tournament-card';
 import { CATEGORIES, GENDERS } from '@/types/tournament';
 import type { TournamentWithClub } from '@/types/tournament';
 import { distanceKm } from '@/lib/geo';
 import { matchesDayType, type DayTypeFilter } from '@/lib/tournament-helpers';
+import { useUserLocation } from '@/hooks/use-user-location';
 import { cn } from '@/lib/utils';
-
-const USER_LOCATION_STORAGE_KEY = 'padel-amiens.user-location';
 
 interface TournamentListProps {
   tournaments: (TournamentWithClub & { distance_km: number | null })[];
@@ -56,11 +55,6 @@ function normalize(s: string): string {
     .replace(/[̀-ͯ]/g, '');
 }
 
-interface UserLocation {
-  lat: number;
-  lng: number;
-}
-
 export function TournamentList({ tournaments }: TournamentListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -68,61 +62,15 @@ export function TournamentList({ tournaments }: TournamentListProps) {
   const [maxDistance, setMaxDistance] = useState<number | null>(null);
   const [maxDays, setMaxDays] = useState<number | null>(null);
   const [dayType, setDayType] = useState<DayTypeFilter>(null);
-  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [geoLoading, setGeoLoading] = useState(false);
 
-  // Restaure la position utilisateur depuis localStorage au mount.
-  // On la persiste pour que l'utilisateur n'ait pas à re-cliquer sur "Près
-  // de moi" à chaque visite.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const stored = window.localStorage.getItem(USER_LOCATION_STORAGE_KEY);
-      if (stored) setUserLocation(JSON.parse(stored));
-    } catch {
-      /* localStorage indisponible ou JSON cassé : on ignore */
-    }
-  }, []);
-
-  // Demande la géolocalisation du navigateur (opt-in explicite).
-  function requestGeolocation() {
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      toast.error('Ton navigateur ne supporte pas la géolocalisation.');
-      return;
-    }
-    setGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setUserLocation(loc);
-        setGeoLoading(false);
-        try {
-          window.localStorage.setItem(USER_LOCATION_STORAGE_KEY, JSON.stringify(loc));
-        } catch {
-          /* localStorage plein ou désactivé : on continue sans persistance */
-        }
-        toast.success('Position détectée, distances mises à jour.');
-      },
-      (err) => {
-        setGeoLoading(false);
-        const reason =
-          err.code === err.PERMISSION_DENIED
-            ? 'Tu as refusé la géolocalisation.'
-            : 'Position indisponible.';
-        toast.error(reason);
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
-    );
-  }
-
-  function clearGeolocation() {
-    setUserLocation(null);
-    try {
-      window.localStorage.removeItem(USER_LOCATION_STORAGE_KEY);
-    } catch {
-      /* ignoré */
-    }
-  }
+  // Position utilisateur partagée via le hook (lecture localStorage,
+  // gestion permission, persistence). Cf. hooks/use-user-location.
+  const {
+    userLocation,
+    loading: geoLoading,
+    requestGeolocation,
+    clearGeolocation,
+  } = useUserLocation();
 
   // Date butoir pour le filtre période : aujourd'hui + maxDays.
   // Calculée une fois par changement de filtre (et pas dans chaque .filter()).
@@ -208,6 +156,10 @@ export function TournamentList({ tournaments }: TournamentListProps) {
 
   return (
     <div className="space-y-6">
+      {/* Bannière opt-in pour la géoloc — masquée si position déjà active
+          ou si l'utilisateur a cliqué "plus tard" */}
+      <GeolocationBanner message="Active ta position pour voir les tournois autour de toi (sinon on calcule depuis Cagny par défaut)." />
+
       {/* Barre de filtres */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
         <div className="flex items-center justify-between">

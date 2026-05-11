@@ -33,6 +33,12 @@ export async function Header() {
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
           <span className="text-2xl">🎾</span>
           <span>Padel Amiens</span>
+          <span
+            className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-800 align-middle ml-1"
+            title="Version bêta — actuellement Amiens et la région Hauts-de-France"
+          >
+            Bêta
+          </span>
         </Link>
 
         <nav className="flex items-center gap-3 sm:gap-5 text-sm">

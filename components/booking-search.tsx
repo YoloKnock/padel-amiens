@@ -33,7 +33,10 @@ import {
 } from 'lucide-react';
 
 import { ClubsMapClient } from './clubs-map-client';
+import { GeolocationBanner } from './geolocation-banner';
 import { BOOKING_HOURS, BOOKING_PLATFORM_LABELS, buildBookingUrl } from '@/lib/booking';
+import { distanceKm } from '@/lib/geo';
+import { useUserLocation } from '@/hooks/use-user-location';
 import { cn, formatPhone } from '@/lib/utils';
 import type { BookableClub, BookingPlatform } from '@/types/tournament';
 
@@ -108,16 +111,33 @@ export function BookingSearch({ clubs }: BookingSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
 
+  // Position user partagée (hook = localStorage + UX prompt)
+  const { userLocation } = useUserLocation();
+
   // Initialise la date au mount, côté client uniquement (cf. comment ci-dessus)
   useEffect(() => {
     setDate(getTodayIso());
   }, []);
 
-  // Filtrage cumulé : recherche textuelle puis distance
+  // 1. Enrichissement : si l'user a une position connue, recalcule la distance
+  //    pour chaque club depuis CETTE position. Sinon, garde la valeur serveur
+  //    (qui est la distance depuis Cagny).
+  const enrichedClubs = useMemo(() => {
+    if (!userLocation) return clubs;
+    return clubs.map((c) => {
+      if (c.latitude === null || c.longitude === null) return c;
+      return {
+        ...c,
+        distance_km: distanceKm(userLocation.lat, userLocation.lng, c.latitude, c.longitude),
+      };
+    });
+  }, [clubs, userLocation]);
+
+  // 2. Filtrage cumulé : recherche textuelle puis distance
   const filteredClubs = useMemo(() => {
     const normalizedQuery = normalize(searchQuery.trim());
 
-    return clubs.filter((club) => {
+    return enrichedClubs.filter((club) => {
       // Filtre par nom/ville si une recherche est saisie
       if (normalizedQuery.length > 0) {
         const haystack = normalize(`${club.name} ${club.city ?? ''}`);
@@ -135,7 +155,7 @@ export function BookingSearch({ clubs }: BookingSearchProps) {
 
       return true;
     });
-  }, [clubs, searchQuery, maxDistance]);
+  }, [enrichedClubs, searchQuery, maxDistance]);
 
   // Tri : distance croissante, clubs sans coords en dernier
   const sortedClubs = useMemo(() => {
@@ -152,6 +172,9 @@ export function BookingSearch({ clubs }: BookingSearchProps) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Bannière opt-in géolocalisation (masquée si position déjà active) */}
+      <GeolocationBanner message="Active ta position pour voir les centres autour de toi (sinon on calcule depuis Cagny par défaut)." />
+
       {/* ============================================
           Formulaire de recherche
           ============================================ */}
@@ -197,7 +220,7 @@ export function BookingSearch({ clubs }: BookingSearchProps) {
             </select>
           </FieldWithIcon>
 
-          <FieldWithIcon icon={Sliders} label="Distance max depuis Cagny">
+          <FieldWithIcon icon={Sliders} label={userLocation ? 'Distance max depuis ma position' : 'Distance max depuis Cagny'}>
             <div className="flex flex-wrap gap-1.5">
               {DISTANCE_OPTIONS.map((opt) => (
                 <button
@@ -224,7 +247,8 @@ export function BookingSearch({ clubs }: BookingSearchProps) {
             <strong className="text-foreground">{hour}h00</strong>
             {maxDistance !== null && (
               <>
-                , à moins de <strong className="text-foreground">{maxDistance} km</strong> de Cagny
+                , à moins de <strong className="text-foreground">{maxDistance} km</strong>{' '}
+                {userLocation ? 'de ta position' : 'de Cagny'}
               </>
             )}
             {hasActiveSearch && (
