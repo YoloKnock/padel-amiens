@@ -37,7 +37,7 @@ Tu parles à **Hugo**, étudiant en ingénierie en stage chez Airbus Atlantic. I
 | Dates | **date-fns** | Manipulation de dates avec locale française. |
 | Toasts | **sonner** | UX moderne, intégré shadcn/ui. |
 | Hébergement | **Vercel** | Déploiement git-push, cron jobs natifs, Hugo a déjà le compte connecté. |
-| Cron | **Vercel Cron Jobs** | Configuré dans `vercel.json`, gratuit pour 2 jobs quotidiens en plan Hobby. |
+| Cron | **Vercel Cron Jobs** | Configuré dans `vercel.json`. Plan Hobby limité à des crons **daily** (1x/jour max) — le scrape tourne à 6h du matin. Pour plus fréquent il faudrait passer Pro. |
 
 ## 4. Repos GitHub d'inspiration UI/UX à mater
 
