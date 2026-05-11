@@ -85,12 +85,22 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
         <span className="capitalize">{formattedDate}</span>
       </div>
 
-      {/* Club + ville */}
+      {/* Club + ville — nom cliquable vers la fiche club (z-10 pour passer
+          au-dessus du stretched-link du titre) */}
       {tournament.club_name && (
         <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
           <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div>
-            <div className="font-medium text-foreground">{tournament.club_name}</div>
+            {tournament.club_id ? (
+              <Link
+                href={`/club/${tournament.club_id}`}
+                className="relative z-10 font-medium text-foreground hover:text-emerald-700 transition-colors"
+              >
+                {tournament.club_name}
+              </Link>
+            ) : (
+              <div className="font-medium text-foreground">{tournament.club_name}</div>
+            )}
             {tournament.club_city && <div>{tournament.club_city}</div>}
           </div>
         </div>

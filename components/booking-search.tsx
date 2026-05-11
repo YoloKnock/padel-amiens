@@ -13,6 +13,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -295,9 +296,16 @@ function ClubBookingCard({
 
   return (
     <article className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md hover:border-slate-300 transition-all flex flex-col">
-      {/* Header : nom + distance */}
+      {/* Header : nom (cliquable vers la fiche club) + distance */}
       <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="font-semibold text-base leading-tight">{club.name}</h3>
+        <h3 className="font-semibold text-base leading-tight">
+          <Link
+            href={`/club/${club.id}`}
+            className="hover:text-emerald-700 transition-colors"
+          >
+            {club.name}
+          </Link>
+        </h3>
         {club.distance_km !== null && (
           <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0 ml-2 mt-0.5">
             {club.distance_km} km

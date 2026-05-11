@@ -43,28 +43,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Entrées dynamiques : un lien par tournoi à venir
+  // Entrées dynamiques : un lien par tournoi + un lien par club
   // On enveloppe dans un try/catch parce que le sitemap peut être généré au
   // build initial sans Supabase configurée — auquel cas on retourne juste les
   // pages statiques.
   let tournamentEntries: MetadataRoute.Sitemap = [];
+  let clubEntries: MetadataRoute.Sitemap = [];
+
   try {
     const supabase = createAdminClient();
-    const { data } = await supabase
+
+    // Tournois à venir
+    const { data: tournamentsData } = await supabase
       .from('upcoming_tournaments')
       .select('id, start_date')
       .order('start_date', { ascending: true })
-      .limit(1000); // largement assez pour 6 mois de tournois en HDF
+      .limit(1000);
 
-    tournamentEntries = (data ?? []).map((t) => ({
+    tournamentEntries = (tournamentsData ?? []).map((t) => ({
       url: `${BASE_URL}/tournoi/${t.id}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }));
+
+    // Clubs : un par fiche club. Stable dans le temps → bonne cible SEO long-tail.
+    const { data: clubsData } = await supabase
+      .from('clubs')
+      .select('id')
+      .order('name');
+
+    clubEntries = (clubsData ?? []).map((c) => ({
+      url: `${BASE_URL}/club/${c.id}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }));
   } catch (error) {
-    console.warn('[sitemap] Skipped tournament entries:', error);
+    console.warn('[sitemap] Skipped dynamic entries:', error);
   }
 
-  return [...staticEntries, ...tournamentEntries];
+  return [...staticEntries, ...tournamentEntries, ...clubEntries];
 }

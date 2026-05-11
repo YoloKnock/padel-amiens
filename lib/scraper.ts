@@ -156,6 +156,61 @@ export function cleanCity(raw: string): string | null {
 }
 
 /**
+ * Répare les chaînes en double-encodage UTF-8.
+ *
+ * Padel Magazine sert son HTML en UTF-8 mais certains tournois ont leur
+ * titre saisi "à la main" déjà corrompu (le rédacteur a probablement copié-
+ * collé depuis une source latin-1 affichée comme UTF-8). Résultat : "journée"
+ * apparaît comme "journÃ©e" directement dans la source HTML, peu importe
+ * comment on décode le buffer côté Node.
+ *
+ * On répare en remplaçant les séquences les plus fréquentes du double-encode.
+ * C'est moins élégant qu'un algo générique mais c'est suffisant en pratique
+ * (les caractères français accentués sont au final un petit set fini).
+ */
+const DOUBLE_ENCODE_FIXES: Record<string, string> = {
+  'Ã©': 'é',
+  'Ã¨': 'è',
+  'Ãª': 'ê',
+  'Ã«': 'ë',
+  'Ã ': 'à',
+  'Ã¢': 'â',
+  'Ã¤': 'ä',
+  'Ã®': 'î',
+  'Ã¯': 'ï',
+  'Ã´': 'ô',
+  'Ã¶': 'ö',
+  'Ã¹': 'ù',
+  'Ã»': 'û',
+  'Ã¼': 'ü',
+  'Ã§': 'ç',
+  'Ã‰': 'É',
+  'Ãˆ': 'È',
+  'ÃŠ': 'Ê',
+  'Ã€': 'À',
+  'Ã‚': 'Â',
+  'ÃŽ': 'Î',
+  'Ã‘': 'Ñ',
+  'Ã”': 'Ô',
+  'Ã›': 'Û',
+  'Ã‡': 'Ç',
+  // Cas particulier : œ et Œ ont des séquences plus longues
+  'Å"': 'œ',
+  'Å': 'œ',
+  'Å': 'Œ',
+};
+
+export function fixDoubleUtf8(input: string): string {
+  let fixed = input;
+  for (const [bad, good] of Object.entries(DOUBLE_ENCODE_FIXES)) {
+    if (fixed.includes(bad)) {
+      fixed = fixed.replaceAll(bad, good);
+    }
+  }
+  return fixed;
+}
+
+/**
  * Normalise une URL extraite du HTML (potentiellement relative) en absolue.
  * Utilise PADEL_MAGAZINE_BASE_URL comme base. Retourne null si invalide.
  */
@@ -201,7 +256,13 @@ async function fetchPage(pageNumber: number): Promise<string> {
     throw new Error(`HTTP ${response.status} sur ${url}`);
   }
 
-  return await response.text();
+  // On force le décodage en UTF-8 plutôt que `response.text()` qui peut deviner
+  // l'encoding selon les headers HTTP du serveur. Padel Magazine sert son HTML
+  // en UTF-8 (cf. meta charset) mais omet le `charset=utf-8` dans le Content-Type,
+  // ce qui faisait que Node interpretait latin-1 → on récupérait "journÃ©e" au
+  // lieu de "journée". TextDecoder explicite résout ça proprement.
+  const buffer = await response.arrayBuffer();
+  return new TextDecoder('utf-8').decode(buffer);
 }
 
 // ============================================
@@ -235,8 +296,9 @@ export function parseHtmlPage(html: string): {
 
     // On essaie de trouver le titre (h4 suivant ou h3)
     const titleEl = $(el).nextAll('h4, h3').first();
-    const title = titleEl.text().trim();
-    if (!title) return;
+    const titleRaw = titleEl.text().trim();
+    if (!titleRaw) return;
+    const title = fixDoubleUtf8(titleRaw); // répare "journÃ©e" → "journée"
 
     const category = parseCategory(title);
     if (!category) return; // On skip si pas de catégorie reconnue
@@ -245,11 +307,11 @@ export function parseHtmlPage(html: string): {
 
     // Récupération du bloc parent qui contient les infos club + contact
     const block = $(el).closest('.tournoi, article, [class*="tournament"], div').first();
-    const blockText = block.text();
+    const blockText = fixDoubleUtf8(block.text());
 
     // Extraction du club (souvent après "Club" ou dans un lien)
     const clubLink = block.find('a[href*="/clubs/"]').first();
-    const clubName = clubLink.text().trim() || extractClubName(blockText);
+    const clubName = fixDoubleUtf8(clubLink.text().trim() || extractClubName(blockText) || '');
 
     // Extraction email
     const emailMatch = blockText.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
