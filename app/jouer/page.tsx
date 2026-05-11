@@ -39,7 +39,10 @@ async function getBookableClubs(): Promise<(BookableClub & { distance_km: number
 
   const { data, error } = await supabase
     .from('clubs')
-    .select('id, name, city, postal_code, latitude, longitude, booking_platform, booking_url_template')
+    .select(
+      'id, name, city, postal_code, latitude, longitude, booking_platform, ' +
+      'booking_url_template, contact_email, contact_phone'
+    )
     .not('booking_platform', 'is', null)
     .neq('booking_platform', 'none')
     .order('name');
@@ -49,7 +52,12 @@ async function getBookableClubs(): Promise<(BookableClub & { distance_km: number
     return [];
   }
 
-  return (data ?? []).map((club) => ({
+  // Le typage Supabase de `select(string)` peut être lossy (renvoie un union
+  // avec GenericStringError quand la string est longue). On caste explicitement
+  // vers notre interface BookableClub pour pouvoir manipuler les colonnes.
+  const rows = (data ?? []) as unknown as BookableClub[];
+
+  return rows.map((club) => ({
     ...club,
     distance_km: distanceFromAmiens(club.latitude, club.longitude),
   }));

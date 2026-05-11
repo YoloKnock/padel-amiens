@@ -53,6 +53,8 @@ export interface BookableClub {
   longitude: number | null;
   booking_platform: BookingPlatform | null;
   booking_url_template: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
 }
 
 // ============================================
