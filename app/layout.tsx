@@ -2,12 +2,21 @@
 // Layout racine de l'application
 // ============================================
 
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from 'sonner';
 
 import './globals.css';
+
+// Viewport + theme color (separe de metadata dans Next.js 14)
+// La theme_color colore la barre de statut iOS / Android quand le site est
+// installe en PWA. Le manifest.webmanifest est genere par app/manifest.ts.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#059669',
+};
 
 // Police Inter chargée par Next.js (auto-optimisée, pas de FOUT)
 const inter = Inter({

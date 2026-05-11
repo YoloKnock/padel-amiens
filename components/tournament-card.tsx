@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock, ExternalLink, MapPin, Mail, Phone, User } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Clock, ExternalLink, MapPin, Mail, Phone, User } from 'lucide-react';
 
 import { CATEGORY_COLORS } from '@/lib/constants';
 import { parseTimeSlot, TIME_SLOT_LABELS } from '@/lib/tournament-helpers';
@@ -163,6 +163,15 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       )}
+
+      {/* Bouton .ics : telecharge un evenement calendrier ajoutable en 1 clic */}
+      <a
+        href={`/api/ics/tournoi/${tournament.id}`}
+        className="relative z-10 mt-2 inline-flex items-center justify-center gap-2 w-full px-4 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 transition-colors"
+      >
+        <CalendarPlus className="w-3.5 h-3.5" />
+        Ajouter à mon agenda
+      </a>
     </motion.article>
   );
 }

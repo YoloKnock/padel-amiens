@@ -19,6 +19,7 @@ import { fr } from 'date-fns/locale';
 import {
   ArrowLeft,
   CalendarDays,
+  CalendarPlus,
   ExternalLink,
   Mail,
   MapPin,
@@ -286,6 +287,15 @@ export default async function TournoiPage({ params }: PageProps) {
               <ExternalLink className="w-4 h-4" />
             </a>
           )}
+
+          {/* Ajout au calendrier — fichier .ics téléchargeable */}
+          <a
+            href={`/api/ics/tournoi/${tournament.id}`}
+            className="mt-3 inline-flex items-center justify-center gap-2 w-full px-6 py-2.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium"
+          >
+            <CalendarPlus className="w-4 h-4" />
+            Ajouter à mon agenda
+          </a>
 
           {/* Contacts club */}
           {(tournament.club_email || tournament.club_phone) && (

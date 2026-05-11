@@ -13,7 +13,7 @@ export function Header() {
           <span>Padel Amiens</span>
         </Link>
 
-        <nav className="flex items-center gap-6 text-sm">
+        <nav className="flex items-center gap-4 sm:gap-6 text-sm">
           <Link
             href="/"
             className="font-medium transition-colors hover:text-foreground/80"
@@ -27,12 +27,17 @@ export function Header() {
             Jouer
           </Link>
           <Link
+            href="/matchs"
+            className="font-medium transition-colors hover:text-foreground/80"
+          >
+            Partenaires
+          </Link>
+          <Link
             href="/a-propos"
             className="font-medium transition-colors hover:text-foreground/80 hidden sm:inline"
           >
             À propos
           </Link>
-          {/* À venir : Communauté, etc. */}
         </nav>
       </div>
     </header>
