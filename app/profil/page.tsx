@@ -2,11 +2,19 @@
 // Page profil utilisateur — /profil
 // ============================================
 // Authentifié uniquement. Sert à la fois pour la création du profile
-// (premier login) et l'édition.
+// (premier login), l'édition, la gestion de mes annonces et la
+// suppression de compte.
 
+import Link from 'next/link';
+import { format, parseISO } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { CalendarDays, CalendarPlus, Clock, MapPin } from 'lucide-react';
+
+import { DeleteMatchRequestButton } from '@/components/delete-match-request-button';
 import { Header } from '@/components/header';
 import { ProfileForm } from '@/components/profile-form';
 import { LogoutButton } from '@/components/logout-button';
+import { createAdminClient } from '@/lib/supabase';
 import { getCurrentProfile, requireUser } from '@/lib/user';
 
 export const dynamic = 'force-dynamic';
@@ -16,10 +24,30 @@ export const metadata = {
   robots: { index: false, follow: false }, // page privée
 };
 
+// Récupère les annonces actives de l'utilisateur connecté
+async function getMyMatchRequests(userId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('match_requests')
+    .select('id, when_date, when_hour, location, level_wanted, comment, status, expires_at, created_at')
+    .eq('profile_id', userId)
+    .eq('status', 'active')
+    .gt('expires_at', new Date().toISOString())
+    .order('when_date', { ascending: true });
+  if (error) {
+    console.error('[profil] erreur fetch mes annonces:', error);
+    return [];
+  }
+  return data ?? [];
+}
+
 export default async function ProfilePage() {
   const user = await requireUser();
   const profile = await getCurrentProfile();
   const isNew = profile === null;
+
+  // Pas d'annonces si l'utilisateur n'a pas encore créé son profil
+  const myRequests = !isNew ? await getMyMatchRequests(user.id) : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -50,6 +78,77 @@ export default async function ProfilePage() {
           <ProfileForm profile={profile} email={user.email ?? ''} />
         </div>
 
+        {/* ============================================
+            Mes annonces de matchmaking actives
+            ============================================ */}
+        {!isNew && (
+          <section className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">
+                Mes annonces ({myRequests.length})
+              </h2>
+              <Link
+                href="/matchs/nouveau"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition-colors"
+              >
+                <CalendarPlus className="w-3.5 h-3.5" />
+                Nouvelle annonce
+              </Link>
+            </div>
+
+            {myRequests.length === 0 ? (
+              <p className="text-sm text-muted-foreground bg-white rounded-xl border border-slate-200 p-4">
+                Tu n&apos;as aucune annonce active. Poste-en une depuis le bouton
+                ci-dessus pour trouver un partenaire.
+              </p>
+            ) : (
+              <ul className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+                {myRequests.map((req) => {
+                  const dateLabel = format(parseISO(req.when_date), 'EEEE d MMM yyyy', {
+                    locale: fr,
+                  });
+                  return (
+                    <li
+                      key={req.id}
+                      className="p-4 flex items-start justify-between gap-3"
+                    >
+                      <Link href={`/matchs/${req.id}`} className="flex-1 min-w-0">
+                        <div className="text-sm font-medium capitalize mb-1">
+                          <CalendarDays className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+                          {dateLabel}
+                          {req.when_hour && (
+                            <span className="text-muted-foreground font-normal">
+                              {' '}· {req.when_hour}
+                            </span>
+                          )}
+                        </div>
+                        {req.location && (
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {req.location}
+                          </div>
+                        )}
+                        {req.comment && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            “{req.comment}”
+                          </p>
+                        )}
+                      </Link>
+                      <DeleteMatchRequestButton
+                        requestId={req.id}
+                        variant="inline"
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {/* ============================================
+            Suppression de compte (zone dangereuse)
+            ============================================ */}
         {!isNew && (
           <div className="mt-8 p-4 rounded-lg bg-red-50 border border-red-200">
             <h2 className="font-semibold text-red-900 mb-2">Supprimer mon compte</h2>

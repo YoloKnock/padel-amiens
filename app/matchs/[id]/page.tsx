@@ -14,6 +14,7 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ArrowLeft, CalendarDays, Clock, Lock, Mail, MapPin, MessageCircle, Phone, User } from 'lucide-react';
 
+import { DeleteMatchRequestButton } from '@/components/delete-match-request-button';
 import { Header } from '@/components/header';
 import { createAdminClient } from '@/lib/supabase';
 import { getCurrentUser } from '@/lib/user';
@@ -188,9 +189,16 @@ export default async function MatchRequestDetailPage({ params }: PageProps) {
                 </Link>
               </div>
             ) : isOwner ? (
-              <p className="text-sm text-muted-foreground">
-                C&apos;est ton annonce. Tu peux la retirer depuis ton profil.
-              </p>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  C&apos;est ton annonce. Les autres joueurs te contacteront ici.
+                  Tu peux la retirer à tout moment :
+                </p>
+                <DeleteMatchRequestButton
+                  requestId={request.id}
+                  redirectTo="/matchs"
+                />
+              </div>
             ) : (
               <div className="space-y-2">
                 <a

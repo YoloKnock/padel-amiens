@@ -124,7 +124,12 @@ export default async function MatchsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {requests.map((req, i) => (
-              <MatchRequestCard key={req.id} request={req} index={i} />
+              <MatchRequestCard
+                key={req.id}
+                request={req}
+                index={i}
+                currentUserId={user?.id ?? null}
+              />
             ))}
           </div>
         )}
