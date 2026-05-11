@@ -50,7 +50,10 @@ export function LoginForm() {
     if (error) {
       setLoading(false);
       console.error('[login] Google OAuth error:', error);
-      toast.error('Connexion Google indisponible. Active le provider dans Supabase.');
+      // Message user-friendly. Si le provider Google n'est pas activé côté
+      // Supabase, l'utilisateur ne doit pas voir "active le provider" — on
+      // lui propose juste l'alternative email/password.
+      toast.error('Connexion Google indisponible pour l\'instant. Utilise email + mot de passe ci-dessous.');
       return;
     }
     // Pas de setLoading(false) ici : la page va être redirigée vers Google
