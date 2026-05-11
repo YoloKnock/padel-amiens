@@ -20,7 +20,13 @@ export function Header() {
           >
             Tournois
           </Link>
-          {/* À venir : Americano, Communauté, etc. */}
+          <Link
+            href="/jouer"
+            className="font-medium transition-colors hover:text-foreground/80"
+          >
+            Jouer
+          </Link>
+          {/* À venir : Communauté, etc. */}
         </nav>
       </div>
     </header>

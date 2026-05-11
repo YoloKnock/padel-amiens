@@ -14,6 +14,10 @@ export type Category = (typeof CATEGORIES)[number];
 export const GENDERS = ['messieurs', 'dames', 'mixte'] as const;
 export type Gender = (typeof GENDERS)[number];
 
+// Plateformes de réservation supportées pour le deep-link "Je cherche un créneau"
+export const BOOKING_PLATFORMS = ['playtomic', 'doinsport', 'anybuddy', 'custom', 'none'] as const;
+export type BookingPlatform = (typeof BOOKING_PLATFORMS)[number];
+
 // ============================================
 // Schéma d'un club
 // ============================================
@@ -27,9 +31,29 @@ export const ClubSchema = z.object({
   longitude: z.number().nullable(),
   contact_email: z.string().email().nullable(),
   contact_phone: z.string().nullable(),
+  // Plateforme de réservation utilisée par le club (pour le widget "Jouer")
+  booking_platform: z.enum(BOOKING_PLATFORMS).nullable(),
+  // Template d'URL avec placeholders {name}, {date} (YYYY-MM-DD), {hour} (HH)
+  // substitués au clic. Stocké en DB pour pouvoir être customisé par club.
+  booking_url_template: z.string().nullable(),
 });
 
 export type Club = z.infer<typeof ClubSchema>;
+
+// ============================================
+// Vue clubs enrichie pour le widget de recherche créneau
+// ============================================
+// Sélection minimale des colonnes nécessaires côté frontend pour /jouer
+export interface BookableClub {
+  id: string;
+  name: string;
+  city: string | null;
+  postal_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  booking_platform: BookingPlatform | null;
+  booking_url_template: string | null;
+}
 
 // ============================================
 // Schéma d'un tournoi

@@ -5,7 +5,7 @@
 // Les filtres interactifs sont délégués à <FilterPanel /> en client component.
 
 import Link from 'next/link';
-import { MapPin, Trophy, Calendar, Sparkles } from 'lucide-react';
+import { MapPin, Trophy, Calendar, Sparkles, Search } from 'lucide-react';
 
 import { EventCard } from '@/components/event-card';
 import { TournamentList } from '@/components/tournament-list';
@@ -96,6 +96,18 @@ export default async function HomePage() {
             Le calendrier complet des P25, P50, P100 et plus dans la Somme et les Hauts-de-France.
             Filtré par catégorie, genre et distance depuis Cagny.
           </p>
+
+          {/* CTA secondaire vers le widget de recherche de creneau */}
+          <div className="pt-2">
+            <Link
+              href="/jouer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-sm font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
+            >
+              <Search className="w-4 h-4" />
+              Ou trouve un terrain dispo en un clic
+            </Link>
+          </div>
+
           <div className="flex flex-wrap justify-center gap-6 pt-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
