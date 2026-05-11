@@ -22,7 +22,9 @@ import {
   Calendar,
   Clock,
   ExternalLink,
+  LayoutGrid,
   Mail,
+  Map as MapIcon,
   MapPin,
   Navigation,
   Phone,
@@ -30,6 +32,7 @@ import {
   Sliders,
 } from 'lucide-react';
 
+import { ClubsMapClient } from './clubs-map-client';
 import { BOOKING_HOURS, BOOKING_PLATFORM_LABELS, buildBookingUrl } from '@/lib/booking';
 import { cn, formatPhone } from '@/lib/utils';
 import type { BookableClub, BookingPlatform } from '@/types/tournament';
@@ -96,11 +99,14 @@ function normalize(s: string): string {
     .replace(/[̀-ͯ]/g, '');
 }
 
+type ViewMode = 'list' | 'map';
+
 export function BookingSearch({ clubs }: BookingSearchProps) {
   const [date, setDate] = useState('');
   const [hour, setHour] = useState('18');
   const [maxDistance, setMaxDistance] = useState<number | null>(50);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   // Initialise la date au mount, côté client uniquement (cf. comment ci-dessus)
   useEffect(() => {
@@ -232,7 +238,7 @@ export function BookingSearch({ clubs }: BookingSearchProps) {
       </div>
 
       {/* ============================================
-          Résultats
+          Résultats — bascule Liste / Carte
           ============================================ */}
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -240,10 +246,28 @@ export function BookingSearch({ clubs }: BookingSearchProps) {
             {sortedClubs.length} centre{sortedClubs.length > 1 ? 's' : ''} trouvé
             {sortedClubs.length > 1 ? 's' : ''}
           </h2>
+
+          {/* Bascule Liste / Carte */}
+          <div className="inline-flex items-center rounded-lg border border-slate-200 p-0.5 bg-white">
+            <ViewModeButton
+              active={viewMode === 'list'}
+              onClick={() => setViewMode('list')}
+              icon={LayoutGrid}
+              label="Liste"
+            />
+            <ViewModeButton
+              active={viewMode === 'map'}
+              onClick={() => setViewMode('map')}
+              icon={MapIcon}
+              label="Carte"
+            />
+          </div>
         </div>
 
         {sortedClubs.length === 0 ? (
           <EmptyState onClearSearch={() => setSearchQuery('')} hasSearch={hasActiveSearch} />
+        ) : viewMode === 'map' ? (
+          <ClubsMapClient clubs={sortedClubs} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {sortedClubs.map((club) => (
@@ -457,6 +481,36 @@ function MissingClubCta() {
         Signaler un centre manquant
       </a>
     </div>
+  );
+}
+
+// ============================================
+// Bouton bascule Liste / Carte
+// ============================================
+function ViewModeButton({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: typeof Search;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+        active
+          ? 'bg-emerald-600 text-white shadow-sm'
+          : 'text-slate-700 hover:bg-slate-100'
+      )}
+    >
+      <Icon className="w-3.5 h-3.5" />
+      {label}
+    </button>
   );
 }
 

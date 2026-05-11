@@ -172,7 +172,10 @@ export default async function HomePage() {
           </a>
           .
         </p>
-        <p className="mt-4">
+        <p className="mt-4 flex flex-wrap justify-center gap-4">
+          <Link href="/a-propos" className="underline hover:text-foreground">
+            À propos
+          </Link>
           <Link href="/mentions-legales" className="underline hover:text-foreground">
             Mentions légales
           </Link>

@@ -26,6 +26,12 @@ export function Header() {
           >
             Jouer
           </Link>
+          <Link
+            href="/a-propos"
+            className="font-medium transition-colors hover:text-foreground/80 hidden sm:inline"
+          >
+            À propos
+          </Link>
           {/* À venir : Communauté, etc. */}
         </nav>
       </div>
