@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { CalendarPlus, Users } from 'lucide-react';
 
 import { Header } from '@/components/header';
-import { MatchRequestCard } from '@/components/match-request-card';
+import { MatchList } from '@/components/match-list';
 import { createAdminClient } from '@/lib/supabase';
 import { getCurrentUser } from '@/lib/user';
 
@@ -99,39 +99,21 @@ export default async function MatchsPage() {
           )}
         </div>
 
-        {/* Listing */}
+        {/* Listing avec filtres (client component) */}
         {requests.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
             <p className="text-sm text-muted-foreground mb-4">
               Aucune annonce active pour l&apos;instant. Sois le premier à poster !
             </p>
-            {user ? (
-              <Link
-                href="/matchs/nouveau"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
-              >
-                Poster une annonce
-              </Link>
-            ) : (
-              <Link
-                href="/login?next=/matchs/nouveau"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
-              >
-                Me connecter
-              </Link>
-            )}
+            <Link
+              href={user ? '/matchs/nouveau' : '/login?next=/matchs/nouveau'}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
+            >
+              {user ? 'Poster une annonce' : 'Me connecter'}
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {requests.map((req, i) => (
-              <MatchRequestCard
-                key={req.id}
-                request={req}
-                index={i}
-                currentUserId={user?.id ?? null}
-              />
-            ))}
-          </div>
+          <MatchList requests={requests} currentUserId={user?.id ?? null} />
         )}
 
         {/* Note légale courte */}

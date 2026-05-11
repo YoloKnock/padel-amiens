@@ -13,6 +13,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import { toast } from 'sonner';
@@ -173,9 +174,19 @@ export function LoginForm() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1">
-            Mot de passe {mode === 'signup' && <span className="text-xs text-muted-foreground">(6 caractères min.)</span>}
-          </label>
+          <div className="flex items-baseline justify-between mb-1">
+            <label htmlFor="password" className="block text-sm font-medium">
+              Mot de passe {mode === 'signup' && <span className="text-xs text-muted-foreground">(6 caractères min.)</span>}
+            </label>
+            {mode === 'signin' && (
+              <Link
+                href="/login/reset"
+                className="text-xs text-emerald-700 underline hover:text-emerald-800"
+              >
+                Mot de passe oublié ?
+              </Link>
+            )}
+          </div>
           <input
             id="password"
             type="password"

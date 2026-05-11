@@ -64,12 +64,17 @@ export function MatchRequestCard({
       transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
       className="group relative bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md hover:border-slate-300 transition-all"
     >
-      {/* Header : pseudo + ville + badge "Ton annonce" si owner */}
+      {/* Header : pseudo (cliquable -> /joueur/[pseudo]) + ville + badge "Toi" */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div>
           <h3 className="font-semibold text-base flex items-center gap-2">
             <User className="w-4 h-4 text-emerald-600" />
-            {request.profile_pseudo}
+            <Link
+              href={`/joueur/${encodeURIComponent(request.profile_pseudo)}`}
+              className="relative z-10 hover:text-emerald-700 transition-colors"
+            >
+              {request.profile_pseudo}
+            </Link>
             {isOwner && (
               <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">
                 Toi

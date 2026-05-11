@@ -60,7 +60,10 @@ export function TournamentList({ tournaments }: TournamentListProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
   const [maxDistance, setMaxDistance] = useState<number | null>(null);
-  const [maxDays, setMaxDays] = useState<number | null>(null);
+  // Par défaut "Cette semaine" : evite d'afficher 99 tournois d'un coup sur la
+  // home. L'utilisateur peut élargir avec un clic sur "Toutes" / "Ce mois" /
+  // "3 prochains mois".
+  const [maxDays, setMaxDays] = useState<number | null>(7);
   const [dayType, setDayType] = useState<DayTypeFilter>(null);
 
   // Position utilisateur partagée via le hook (lecture localStorage,

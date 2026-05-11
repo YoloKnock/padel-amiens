@@ -80,6 +80,8 @@ export async function POST(request: Request) {
 // ============================================
 // DELETE — ferme une annonce (auteur OU admin)
 // ============================================
+// Query string ?status=closed (par défaut) ou ?status=closed_found
+// permet de distinguer entre retrait simple et "j'ai trouvé un partenaire".
 export async function DELETE(request: Request) {
   const user = await getCurrentUser();
   if (!user) {
@@ -88,6 +90,11 @@ export async function DELETE(request: Request) {
 
   const url = new URL(request.url);
   const id = url.searchParams.get('id');
+  // Statut cible : 'closed' par défaut, 'closed_found' si l'auteur clique
+  // "j'ai trouvé un partenaire". On bloque les autres valeurs.
+  const statusParam = url.searchParams.get('status');
+  const newStatus =
+    statusParam === 'closed_found' ? 'closed_found' : ('closed' as const);
   if (!id) {
     return NextResponse.json({ error: 'id manquant' }, { status: 400 });
   }
@@ -112,10 +119,10 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // On soft-close plutôt que delete pour pouvoir auditer
+  // Soft-close plutôt que delete pour audit
   const { error } = await supabase
     .from('match_requests')
-    .update({ status: 'closed' })
+    .update({ status: newStatus })
     .eq('id', id);
 
   if (error) {

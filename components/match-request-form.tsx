@@ -17,7 +17,14 @@ function getTodayIso(): string {
   ).padStart(2, '0')}`;
 }
 
-export function MatchRequestForm() {
+interface MatchRequestFormProps {
+  /** Ville par défaut pré-remplie dans le champ "Lieu" (prise depuis le
+   *  profil utilisateur pour éviter de retaper). L'utilisateur peut
+   *  toujours la modifier. */
+  defaultLocation?: string | null;
+}
+
+export function MatchRequestForm({ defaultLocation }: MatchRequestFormProps = {}) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
@@ -100,6 +107,7 @@ export function MatchRequestForm() {
           name="location"
           type="text"
           maxLength={80}
+          defaultValue={defaultLocation ?? ''}
           placeholder="Amiens Padel Cagny, AAC, Multiball..."
           className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-sm"
         />

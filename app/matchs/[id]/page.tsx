@@ -192,11 +192,16 @@ export default async function MatchRequestDetailPage({ params }: PageProps) {
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   C&apos;est ton annonce. Les autres joueurs te contacteront ici.
-                  Tu peux la retirer à tout moment :
                 </p>
                 <DeleteMatchRequestButton
                   requestId={request.id}
                   redirectTo="/matchs"
+                  mode="found"
+                />
+                <DeleteMatchRequestButton
+                  requestId={request.id}
+                  redirectTo="/matchs"
+                  mode="remove"
                 />
               </div>
             ) : (

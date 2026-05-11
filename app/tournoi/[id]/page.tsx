@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 
 import { Header } from '@/components/header';
+import { ShareButtons } from '@/components/share-buttons';
 import { CATEGORY_COLORS } from '@/lib/constants';
 import { distanceFromAmiens } from '@/lib/geo';
 import { createAdminClient } from '@/lib/supabase';
@@ -296,6 +297,15 @@ export default async function TournoiPage({ params }: PageProps) {
             <CalendarPlus className="w-4 h-4" />
             Ajouter à mon agenda
           </a>
+
+          {/* Boutons de partage social (cards WhatsApp, SMS, X, copier) */}
+          <div className="mt-6 pt-4 border-t border-slate-100">
+            <p className="text-xs text-muted-foreground mb-2">Partager ce tournoi :</p>
+            <ShareButtons
+              url={`https://padel-amiens.fr/tournoi/${tournament.id}`}
+              message={`🎾 ${tournament.category} ${GENDER_LABELS[tournament.gender] ?? tournament.gender} · ${formattedDate}${tournament.club_name ? ` · ${tournament.club_name}` : ''}`}
+            />
+          </div>
 
           {/* Contacts club */}
           {(tournament.club_email || tournament.club_phone) && (

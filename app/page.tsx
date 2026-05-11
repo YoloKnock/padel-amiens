@@ -5,7 +5,7 @@
 // Les filtres interactifs sont délégués à <FilterPanel /> en client component.
 
 import Link from 'next/link';
-import { MapPin, Trophy, Calendar, Sparkles, Search } from 'lucide-react';
+import { MapPin, Trophy, Calendar, Sparkles, Search, Users } from 'lucide-react';
 
 import { EventCard } from '@/components/event-card';
 import { TournamentList } from '@/components/tournament-list';
@@ -14,6 +14,34 @@ import { createAdminClient } from '@/lib/supabase';
 import { distanceFromAmiens } from '@/lib/geo';
 import type { TournamentWithClub } from '@/types/tournament';
 import type { EventWithClub } from '@/types/event';
+
+/**
+ * Compteurs publics affichés dans le hero pour donner du signal de vie au site.
+ * Tout en parallèle pour ne pas allonger la latence — chaque count est une
+ * petite query HEAD comptée par Postgres (très rapide).
+ */
+async function getStats() {
+  try {
+    const supabase = createAdminClient();
+    const [tournaments, profiles, matchRequests] = await Promise.all([
+      supabase
+        .from('upcoming_tournaments')
+        .select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase
+        .from('public_match_requests')
+        .select('id', { count: 'exact', head: true }),
+    ]);
+    return {
+      tournaments: tournaments.count ?? 0,
+      players: profiles.count ?? 0,
+      matchRequests: matchRequests.count ?? 0,
+    };
+  } catch (error) {
+    console.warn('[page] stats indisponibles:', error);
+    return { tournaments: 0, players: 0, matchRequests: 0 };
+  }
+}
 
 // Revalidation toutes les 5 minutes (les tournois changent rarement)
 export const revalidate = 300;
@@ -71,8 +99,12 @@ async function getEvents(): Promise<(EventWithClub & { distance_km: number | nul
 }
 
 export default async function HomePage() {
-  // Fetch parallèle des deux sources pour ne pas doubler la latence
-  const [tournaments, events] = await Promise.all([getTournaments(), getEvents()]);
+  // Fetch parallèle : tournois + events + stats — une seule attente réseau
+  const [tournaments, events, stats] = await Promise.all([
+    getTournaments(),
+    getEvents(),
+    getStats(),
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -114,11 +146,33 @@ export default async function HomePage() {
             </Link>
           </div>
 
+          {/* Compteurs publics — signal de vie du site */}
           <div className="flex flex-wrap justify-center gap-6 pt-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              {tournaments.length} tournois à venir
+              <span>
+                <strong className="text-foreground">{stats.tournaments}</strong>{' '}
+                tournois à venir
+              </span>
             </div>
+            {stats.players > 0 && (
+              <Link
+                href="/matchs"
+                className="flex items-center gap-2 hover:text-emerald-700 transition-colors"
+              >
+                <Users className="w-4 h-4" />
+                <span>
+                  <strong className="text-foreground">{stats.players}</strong>{' '}
+                  joueur{stats.players > 1 ? 's' : ''} inscrit
+                  {stats.players > 1 ? 's' : ''}
+                  {stats.matchRequests > 0 && (
+                    <>
+                      {' '}· {stats.matchRequests} annonce{stats.matchRequests > 1 ? 's' : ''}
+                    </>
+                  )}
+                </span>
+              </Link>
+            )}
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               Centré sur Amiens Padel (Cagny)

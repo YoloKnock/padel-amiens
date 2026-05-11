@@ -46,7 +46,7 @@ export default async function NouveauMatchPage() {
         </p>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <MatchRequestForm />
+          <MatchRequestForm defaultLocation={profile.city} />
         </div>
       </main>
     </div>

@@ -13,6 +13,7 @@
 import Link from 'next/link';
 import { LogIn } from 'lucide-react';
 
+import { ThemeToggle } from './theme-toggle';
 import { getCurrentProfile, getCurrentUser } from '@/lib/user';
 
 export async function Header() {
@@ -66,6 +67,9 @@ export async function Header() {
           >
             À propos
           </Link>
+
+          {/* Toggle mode dark, juste avant le bloc compte */}
+          <ThemeToggle />
 
           {/* Bouton avatar / connexion à droite — différencié des liens de nav */}
           <div className="ml-1 sm:ml-3 pl-3 sm:pl-4 border-l border-slate-200">

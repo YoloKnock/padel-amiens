@@ -57,6 +57,11 @@ export const metadata: Metadata = {
   },
 };
 
+// Snippet anti-FOUC pour le mode sombre : applique la classe `dark` sur
+// <html> AVANT que React ne s'hydrate. Sans ça, un utilisateur en mode
+// sombre verrait un flash blanc sur la 1ère frame. Code minifié manuellement.
+const themeInitScript = `(function(){try{var t=localStorage.getItem('padel-amiens.theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`;
+
 export default function RootLayout({
   children,
 }: {
@@ -64,6 +69,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         {children}
         {/* Toaster pour les notifications (sonner) */}
