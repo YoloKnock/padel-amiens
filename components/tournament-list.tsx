@@ -7,11 +7,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, Search, X } from 'lucide-react';
 
 import { TournamentCard } from './tournament-card';
 import { CATEGORIES, GENDERS } from '@/types/tournament';
 import type { TournamentWithClub } from '@/types/tournament';
+import { matchesDayType, type DayTypeFilter } from '@/lib/tournament-helpers';
 import { cn } from '@/lib/utils';
 
 interface TournamentListProps {
@@ -35,11 +36,29 @@ const PERIOD_OPTIONS = [
   { value: 90, label: '3 prochains mois' },
 ];
 
+// Filtre semaine vs week-end. `null` = pas de filtre (tous les jours).
+const DAY_TYPE_OPTIONS: { value: DayTypeFilter; label: string }[] = [
+  { value: null, label: 'Tous' },
+  { value: 'weekday', label: 'Semaine' },
+  { value: 'weekend', label: 'Week-end' },
+];
+
+// Normalise une chaîne pour la recherche : sans accents, en minuscules.
+// Permet de matcher "amiens" autant que "AMIÉNS" ou "Amiens".
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+}
+
 export function TournamentList({ tournaments }: TournamentListProps) {
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
   const [maxDistance, setMaxDistance] = useState<number | null>(null);
   const [maxDays, setMaxDays] = useState<number | null>(null);
+  const [dayType, setDayType] = useState<DayTypeFilter>(null);
 
   // Date butoir pour le filtre période : aujourd'hui + maxDays.
   // Calculée une fois par changement de filtre (et pas dans chaque .filter()).
@@ -53,7 +72,17 @@ export function TournamentList({ tournaments }: TournamentListProps) {
 
   // Filtrage mémoïsé pour éviter de recalculer à chaque render
   const filtered = useMemo(() => {
+    const normalizedQuery = normalize(searchQuery.trim());
+
     return tournaments.filter((t) => {
+      // Recherche textuelle (titre + club + ville)
+      if (normalizedQuery.length > 0) {
+        const haystack = normalize(
+          `${t.title} ${t.club_name ?? ''} ${t.club_city ?? ''}`
+        );
+        if (!haystack.includes(normalizedQuery)) return false;
+      }
+
       if (selectedCategory && t.category !== selectedCategory) return false;
       if (selectedGender && t.gender !== selectedGender) return false;
       if (maxDistance !== null && t.distance_km !== null && t.distance_km > maxDistance) {
@@ -64,21 +93,34 @@ export function TournamentList({ tournaments }: TournamentListProps) {
         const tournamentDate = new Date(t.start_date);
         if (tournamentDate > periodCutoff) return false;
       }
+      if (!matchesDayType(t.start_date, dayType)) return false;
       return true;
     });
-  }, [tournaments, selectedCategory, selectedGender, maxDistance, periodCutoff]);
+  }, [
+    tournaments,
+    searchQuery,
+    selectedCategory,
+    selectedGender,
+    maxDistance,
+    periodCutoff,
+    dayType,
+  ]);
 
   const hasFilters =
+    searchQuery.trim().length > 0 ||
     selectedCategory !== null ||
     selectedGender !== null ||
     maxDistance !== null ||
-    maxDays !== null;
+    maxDays !== null ||
+    dayType !== null;
 
   function resetFilters() {
+    setSearchQuery('');
     setSelectedCategory(null);
     setSelectedGender(null);
     setMaxDistance(null);
     setMaxDays(null);
+    setDayType(null);
   }
 
   return (
@@ -99,6 +141,21 @@ export function TournamentList({ tournaments }: TournamentListProps) {
               Réinitialiser
             </button>
           )}
+        </div>
+
+        {/* Recherche libre (titre, club, ville) — mise en avant en haut */}
+        <div>
+          <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+            <Search className="w-3.5 h-3.5" />
+            Rechercher (ville, club, tournoi)
+          </label>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="ex : Cagny, Amiens Padel, P100..."
+            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-sm"
+          />
         </div>
 
         {/* Filtre Catégorie */}
@@ -149,6 +206,19 @@ export function TournamentList({ tournaments }: TournamentListProps) {
               key={String(opt.value)}
               active={maxDays === opt.value}
               onClick={() => setMaxDays(opt.value)}
+            >
+              {opt.label}
+            </FilterChip>
+          ))}
+        </FilterGroup>
+
+        {/* Filtre Jour : semaine vs week-end */}
+        <FilterGroup label="Jour">
+          {DAY_TYPE_OPTIONS.map((opt) => (
+            <FilterChip
+              key={String(opt.value)}
+              active={dayType === opt.value}
+              onClick={() => setDayType(opt.value)}
             >
               {opt.label}
             </FilterChip>

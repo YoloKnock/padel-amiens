@@ -15,9 +15,10 @@ import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { CalendarDays, ExternalLink, MapPin, Mail, Phone, User } from 'lucide-react';
+import { CalendarDays, Clock, ExternalLink, MapPin, Mail, Phone, User } from 'lucide-react';
 
 import { CATEGORY_COLORS } from '@/lib/constants';
+import { parseTimeSlot, TIME_SLOT_LABELS } from '@/lib/tournament-helpers';
 import { cn, formatPhone } from '@/lib/utils';
 import type { TournamentWithClub } from '@/types/tournament';
 
@@ -38,6 +39,10 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
   const formattedDate = format(date, "EEEE d MMMM yyyy", { locale: fr });
 
   const categoryColor = CATEGORY_COLORS[tournament.category] ?? CATEGORY_COLORS.P100;
+
+  // Créneau approximatif déduit du titre (journée, soirée, etc.)
+  // Reste indicatif : la fiche officielle donne l'horaire exact.
+  const timeSlot = parseTimeSlot(tournament.title);
 
   return (
     <motion.article
@@ -84,6 +89,14 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
         <CalendarDays className="w-4 h-4 flex-shrink-0" />
         <span className="capitalize">{formattedDate}</span>
       </div>
+
+      {/* Créneau approximatif (Journée, Soirée, etc.) — déduit du titre */}
+      {timeSlot && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+          <Clock className="w-4 h-4 flex-shrink-0" />
+          <span>{TIME_SLOT_LABELS[timeSlot]}</span>
+        </div>
+      )}
 
       {/* Club + ville — nom cliquable vers la fiche club (z-10 pour passer
           au-dessus du stretched-link du titre) */}
