@@ -11,6 +11,7 @@
 import Link from 'next/link';
 import { LogIn } from 'lucide-react';
 
+import { Logo } from './logo';
 import { ThemeToggle } from './theme-toggle';
 import { getCurrentProfile, getCurrentUser } from '@/lib/user';
 
@@ -26,16 +27,11 @@ export async function Header() {
   return (
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        {/* Logo + Bêta */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-bold text-lg sm:text-xl flex-shrink-0"
-        >
-          <span className="text-2xl">🎾</span>
-          <span className="hidden xs:inline">Padel Amiens</span>
-          <span className="xs:hidden">Padel</span>
+        {/* Logo — typographie pure sans emoji */}
+        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+          <Logo />
           <span
-            className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-800 align-middle ml-1"
+            className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-800 align-middle"
             title="Version bêta — Amiens & Hauts-de-France"
           >
             Bêta

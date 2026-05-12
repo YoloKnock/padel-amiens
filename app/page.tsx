@@ -73,8 +73,18 @@ async function getUpcomingTournaments(): Promise<
 async function getFeaturedClubs(): Promise<
   (BookableClub & { distance_km: number | null })[]
 > {
-  // Sélection : clubs qui ont une cover_image_url (= les 5 principaux qu'on
-  // a photographiés à la main). On limite à 4 pour une grille bien carrée.
+  // Sélection EXPLICITE des 5 clubs principaux d'Amiens — les complexes
+  // padel les plus pertinents pour la page d'accueil. Même ceux sans
+  // cover_image_url sont affichés (fallback design propre dans la card).
+  // Ordre = ordre d'apparition souhaité dans la preview.
+  const FEATURED_IDS = [
+    'amiens-padel',
+    'tennis-club-amiens-metropole',
+    'aac-tennis-padel',
+    'multiball-amiens',
+    'teams-5-amiens',
+  ];
+
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase
@@ -83,8 +93,7 @@ async function getFeaturedClubs(): Promise<
         'id, name, city, postal_code, latitude, longitude, booking_platform, ' +
           'booking_url_template, contact_email, contact_phone, cover_image_url'
       )
-      .not('cover_image_url', 'is', null)
-      .limit(4);
+      .in('id', FEATURED_IDS);
 
     if (error) {
       console.warn('[page] clubs:', error);
@@ -92,7 +101,13 @@ async function getFeaturedClubs(): Promise<
     }
 
     const rows = (data ?? []) as unknown as BookableClub[];
-    return rows.map((c) => ({
+    // On respecte l'ordre défini dans FEATURED_IDS (Supabase renvoie dans
+    // un ordre indéterminé). Évite que Teams 5 se retrouve au milieu.
+    const ordered = FEATURED_IDS
+      .map((id) => rows.find((r) => r.id === id))
+      .filter((c): c is BookableClub => c !== undefined);
+
+    return ordered.map((c) => ({
       ...c,
       distance_km: distanceFromAmiens(c.latitude, c.longitude),
     }));

@@ -7,6 +7,8 @@
 
 import Link from 'next/link';
 
+import { Logo } from './logo';
+
 export function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white/50 mt-8">
@@ -14,14 +16,8 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           {/* Marque + tagline */}
           <div className="col-span-2 md:col-span-1">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 font-bold text-lg mb-3"
-            >
-              <span className="text-2xl" aria-hidden>
-                🎾
-              </span>
-              <span>Padel Amiens</span>
+            <Link href="/" className="inline-flex items-center mb-3">
+              <Logo />
             </Link>
             <p className="text-xs text-muted-foreground max-w-xs">
               Le padel local, en un seul endroit. Tournois FFT, créneaux dispos,

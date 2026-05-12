@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 
 import { AnimatedCounter } from './animated-counter';
+import { PadelCourtIllustration } from './padel-court-illustration';
 
 interface HomeHeroProps {
   stats: {
@@ -128,19 +129,14 @@ export function HomeHero({ stats }: HomeHeroProps) {
             transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
             className="hidden lg:block relative"
           >
-            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-emerald-600 to-teal-700">
-              {/* Photo OFFICIELLE d'Amiens Padel à Cagny — VRAI court de padel
-                  garanti (les Unsplash que j'avais essayées étaient en fait
-                  du badminton/tennis). Si l'image échoue, gradient emerald
-                  en fallback derrière. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://amiens-padel.fr/wp-content/uploads/2025/05/DSC00009.jpg"
-                alt="Court de padel à Amiens Padel Cagny"
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="eager"
-                fetchPriority="high"
-              />
+            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
+              {/* Illustration SVG d'un court de padel vue en perspective.
+                  Choisi plutôt qu'une photo : pas de risque de confusion
+                  avec un autre sport (les recherches "padel" sur Unsplash
+                  ramènent souvent du tennis/badminton). 100% sûr, et look
+                  "blueprint moderne" cohérent avec un site tech.
+                  Pas un placement publicitaire pour un club en particulier. */}
+              <PadelCourtIllustration className="absolute inset-0 w-full h-full object-contain p-8" />
               {/* Pastilles flottantes : preuves sociales discrètes */}
               <FloatingPill
                 className="top-6 left-6"
