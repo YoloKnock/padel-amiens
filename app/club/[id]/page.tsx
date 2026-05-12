@@ -225,7 +225,7 @@ export default async function ClubPage({ params }: PageProps) {
           <img
             src={club.logo_url}
             alt={`Logo ${club.name}`}
-            className="max-h-full max-w-[40%] object-contain"
+            className="max-h-[80%] max-w-[70%] object-contain"
             loading="eager"
           />
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent" />

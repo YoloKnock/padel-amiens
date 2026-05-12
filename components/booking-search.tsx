@@ -360,13 +360,14 @@ function ClubBookingCard({
           />
         ) : club.logo_url ? (
           /* Pas de photo de complexe, mais on a le logo officiel : on le
-              centre sur le fond dégradé (plus identifiant qu'un MapPin
-              générique). object-contain pour ne pas le rogner. */
+              affiche plein cadre avec un peu de padding (p-3) pour qu'il
+              respire sans paraître minuscule. object-contain pour pas le
+              rogner. */
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={club.logo_url}
             alt={`Logo ${club.name}`}
-            className="absolute inset-0 w-3/5 h-3/5 m-auto object-contain"
+            className="absolute inset-0 w-full h-full object-contain p-3"
             loading="lazy"
           />
         ) : (

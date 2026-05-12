@@ -80,11 +80,14 @@ export function ClubsPreview({ clubs }: ClubsPreviewProps) {
                     loading="lazy"
                   />
                 ) : club.logo_url ? (
+                  /* Logo officiel : on le fait respirer (padding p-3) mais
+                      occuper TOUTE la card. object-contain garantit qu'il
+                      n'est pas rogné même s'il a un ratio non-standard. */
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={club.logo_url}
                     alt={`Logo ${club.name}`}
-                    className="absolute inset-0 w-3/5 h-3/5 m-auto object-contain transition-transform duration-500 group-hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
                 ) : (
