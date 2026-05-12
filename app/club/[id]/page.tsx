@@ -54,7 +54,7 @@ async function getClub(id: string): Promise<BookableClub | null> {
     .from('clubs')
     .select(
       'id, name, city, postal_code, latitude, longitude, ' +
-      'booking_platform, booking_url_template, contact_email, contact_phone'
+      'booking_platform, booking_url_template, contact_email, contact_phone, cover_image_url'
     )
     .eq('id', id)
     .maybeSingle();
@@ -197,7 +197,28 @@ export default async function ClubPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <main className="container mx-auto px-4 py-8 md:py-12 max-w-4xl">
+      {/* ============================================
+          Photo hero plein écran (si dispo)
+          ============================================
+          Hotlink vers l'image du club sur son site officiel. Pas de
+          next/image pour éviter la config remotePatterns. Ratio fixe 21:9
+          desktop / 16:9 mobile pour un look "couverture sportive".
+          eslint-disable-next-line @next/next/no-img-element : intentionnel. */}
+      {club.cover_image_url && (
+        <div className="relative w-full h-48 md:h-72 overflow-hidden bg-slate-100">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={club.cover_image_url}
+            alt={`${club.name} — vue du complexe`}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="eager"
+          />
+          {/* Dégradé en bas pour fondre l'image dans le contenu */}
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent" />
+        </div>
+      )}
+
+      <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
         {/* Breadcrumb retour */}
         <Link
           href="/jouer"
@@ -208,7 +229,7 @@ export default async function ClubPage({ params }: PageProps) {
         </Link>
 
         {/* ============================================
-            Hero
+            Hero textuel sous la photo
             ============================================ */}
         <header className="mb-6">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-3">

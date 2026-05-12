@@ -55,6 +55,8 @@ export interface BookableClub {
   booking_url_template: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  /** URL de la photo principale du club (hero sur /club/[id], thumb /jouer) */
+  cover_image_url: string | null;
 }
 
 // ============================================

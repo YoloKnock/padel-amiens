@@ -343,7 +343,30 @@ function ClubBookingCard({
   })();
 
   return (
-    <article className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md hover:border-slate-300 transition-all flex flex-col">
+    <article className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-emerald-300 hover:shadow-emerald-100/60 transition-all flex flex-col">
+      {/* Bandeau image si dispo, sinon dégradé emerald générique */}
+      <Link
+        href={`/club/${club.id}`}
+        className="block relative h-32 bg-gradient-to-br from-emerald-100 to-teal-200 overflow-hidden"
+        aria-label={`Voir la fiche de ${club.name}`}
+      >
+        {club.cover_image_url ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={club.cover_image_url}
+            alt=""
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        ) : (
+          /* Pas de photo : emoji 🎾 décoratif en gros */
+          <div className="absolute inset-0 flex items-center justify-center text-5xl opacity-40">
+            🎾
+          </div>
+        )}
+      </Link>
+
+      <div className="p-5 flex-1 flex flex-col">
       {/* Header : nom (cliquable vers la fiche club) + distance */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <h3 className="font-semibold text-base leading-tight">
@@ -442,6 +465,7 @@ function ClubBookingCard({
             Itinéraire
           </a>
         )}
+      </div>
       </div>
     </article>
   );

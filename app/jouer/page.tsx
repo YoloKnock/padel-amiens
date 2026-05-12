@@ -41,7 +41,7 @@ async function getBookableClubs(): Promise<(BookableClub & { distance_km: number
     .from('clubs')
     .select(
       'id, name, city, postal_code, latitude, longitude, booking_platform, ' +
-      'booking_url_template, contact_email, contact_phone'
+      'booking_url_template, contact_email, contact_phone, cover_image_url'
     )
     .not('booking_platform', 'is', null)
     .neq('booking_platform', 'none')
