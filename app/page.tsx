@@ -1,38 +1,40 @@
 // ============================================
-// Page d'accueil — Liste des tournois
+// Page d'accueil — Landing page
 // ============================================
-// Server component qui fetch les tournois côté serveur (SEO + perf).
-// Les filtres interactifs sont délégués à <FilterPanel /> en client component.
+// Approche refondue : la home n'est plus une liste de 99 tournois mais une
+// vraie landing avec hero impactant + 4 sections d'aperçu + CTAs clairs.
+// Les listes complètes vivent sur leurs pages dédiées (/tournois, /jouer,
+// /matchs) où on peut filtrer et chercher tranquillement.
 
 import Link from 'next/link';
-import { MapPin, Trophy, Calendar, Sparkles, Search, Users } from 'lucide-react';
+import { Sparkles, Trophy, Users } from 'lucide-react';
 
-import { AnimatedCounter } from '@/components/animated-counter';
+import { ClubsPreview } from '@/components/clubs-preview';
 import { EventCard } from '@/components/event-card';
+import { HomeHero } from '@/components/home-hero';
 import { HowItWorks } from '@/components/how-it-works';
-import { TournamentList } from '@/components/tournament-list';
+import { MatchesPreview } from '@/components/matches-preview';
+import { TournamentsPreview } from '@/components/tournaments-preview';
 import { Header } from '@/components/header';
 import { createAdminClient } from '@/lib/supabase';
 import { distanceFromAmiens } from '@/lib/geo';
-import type { TournamentWithClub } from '@/types/tournament';
+import { getCurrentUser } from '@/lib/user';
+import type { BookableClub, TournamentWithClub } from '@/types/tournament';
 import type { EventWithClub } from '@/types/event';
 
-/**
- * Compteurs publics affichés dans le hero pour donner du signal de vie au site.
- * Tout en parallèle pour ne pas allonger la latence — chaque count est une
- * petite query HEAD comptée par Postgres (très rapide).
- */
+export const revalidate = 300;
+
+// ============================================
+// Fetchers — tout en parallèle pour ne pas allonger la latence
+// ============================================
+
 async function getStats() {
   try {
     const supabase = createAdminClient();
     const [tournaments, profiles, matchRequests] = await Promise.all([
-      supabase
-        .from('upcoming_tournaments')
-        .select('id', { count: 'exact', head: true }),
+      supabase.from('upcoming_tournaments').select('id', { count: 'exact', head: true }),
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
-      supabase
-        .from('public_match_requests')
-        .select('id', { count: 'exact', head: true }),
+      supabase.from('public_match_requests').select('id', { count: 'exact', head: true }),
     ]);
     return {
       tournaments: tournaments.count ?? 0,
@@ -45,177 +47,144 @@ async function getStats() {
   }
 }
 
-// Revalidation toutes les 5 minutes (les tournois changent rarement)
-export const revalidate = 300;
-
-async function getTournaments(): Promise<(TournamentWithClub & { distance_km: number | null })[]> {
-  // On utilise le client admin côté server component
-  // (lecture publique aussi possible avec anon key, mais admin évite les surprises de RLS)
+async function getUpcomingTournaments(): Promise<
+  (TournamentWithClub & { distance_km: number | null })[]
+> {
   const supabase = createAdminClient();
-
+  // On limite à 12 pour la home (preview montre 6, on garde une marge si on
+  // veut filtrer plus tard côté client). La liste complète est sur /tournois.
   const { data, error } = await supabase
     .from('upcoming_tournaments')
     .select('*')
     .order('start_date', { ascending: true })
-    .limit(100);
+    .limit(12);
 
   if (error) {
-    console.error('[page] Erreur fetch tournois:', error);
+    console.error('[page] tournois:', error);
     return [];
   }
-
-  // Enrichissement avec la distance depuis Cagny
   return (data ?? []).map((t) => ({
     ...t,
     distance_km: distanceFromAmiens(t.club_lat, t.club_lng),
   }));
 }
 
-/**
- * Récupère les events non-homologués publiés (Americano, portes ouvertes, etc.)
- * Si la table n'existe pas encore (DB pas migrée), on retourne vide sans casser.
- */
-async function getEvents(): Promise<(EventWithClub & { distance_km: number | null })[]> {
+async function getFeaturedClubs(): Promise<
+  (BookableClub & { distance_km: number | null })[]
+> {
+  // Sélection : clubs qui ont une cover_image_url (= les 5 principaux qu'on
+  // a photographiés à la main). On limite à 4 pour une grille bien carrée.
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('clubs')
+      .select(
+        'id, name, city, postal_code, latitude, longitude, booking_platform, ' +
+          'booking_url_template, contact_email, contact_phone, cover_image_url'
+      )
+      .not('cover_image_url', 'is', null)
+      .limit(4);
+
+    if (error) {
+      console.warn('[page] clubs:', error);
+      return [];
+    }
+
+    const rows = (data ?? []) as unknown as BookableClub[];
+    return rows.map((c) => ({
+      ...c,
+      distance_km: distanceFromAmiens(c.latitude, c.longitude),
+    }));
+  } catch (error) {
+    console.warn('[page] clubs:', error);
+    return [];
+  }
+}
+
+async function getRecentMatchRequests() {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('public_match_requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(3);
+    if (error) return [];
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function getUpcomingEvents(): Promise<
+  (EventWithClub & { distance_km: number | null })[]
+> {
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('upcoming_events')
       .select('*')
       .order('start_date', { ascending: true })
-      .limit(50);
+      .limit(6);
 
-    if (error) {
-      // Si la vue n'existe pas (migration pas encore exécutée), on ignore
-      console.warn('[page] upcoming_events indisponible:', error.message);
-      return [];
-    }
-
+    if (error) return [];
     return (data ?? []).map((e) => ({
       ...e,
       distance_km: distanceFromAmiens(e.club_lat, e.club_lng),
     }));
-  } catch (error) {
-    console.warn('[page] Erreur fetch events:', error);
+  } catch {
     return [];
   }
 }
 
+// ============================================
+// Page
+// ============================================
+
 export default async function HomePage() {
-  // Fetch parallèle : tournois + events + stats — une seule attente réseau
-  const [tournaments, events, stats] = await Promise.all([
-    getTournaments(),
-    getEvents(),
-    getStats(),
-  ]);
+  const [tournaments, clubs, events, stats, matchRequests, currentUser] =
+    await Promise.all([
+      getUpcomingTournaments(),
+      getFeaturedClubs(),
+      getUpcomingEvents(),
+      getStats(),
+      getRecentMatchRequests(),
+      getCurrentUser(),
+    ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Header />
 
-      {/* Hero section — vraie photo de padel + overlay gradient */}
-      <section className="relative overflow-hidden">
-        {/* Vraie image de padel (Unsplash, libre de droits) — un joueur sur
-            un court de padel typique avec ses vitres. Opacity 0.25 +
-            overlay pour rester lisible en mode clair et sombre. */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-25 dark:opacity-20"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1743456110628-6508997cf730?w=1600&q=75&auto=format&fit=crop')",
-          }}
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-emerald-50/60 via-white/60 to-white dark:from-slate-900/40 dark:via-slate-950/60 dark:to-slate-950"
-          aria-hidden
-        />
+      {/* Hero : visuel impactant avec photo padel bien visible + parallax léger */}
+      <HomeHero stats={stats} />
 
-        <div className="container relative mx-auto px-4 py-10 md:py-16">
-          <div className="max-w-3xl mx-auto text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium">
-              <Trophy className="w-3.5 h-3.5" />
-              Tournois homologués FFT · Amiens & Hauts-de-France
-            </div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
-              Le padel local,{' '}
-              <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                en un endroit
-              </span>
-            </h1>
-            <p className="text-base text-muted-foreground max-w-xl mx-auto">
-              Tournois, créneaux dispos, partenaires de jeu — tout au même
-              endroit, gratuit, local.
-            </p>
-
-            {/* CTA secondaires — discrets, regroupés */}
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-              <Link
-                href="/jouer"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
-              >
-                <Search className="w-3.5 h-3.5" />
-                Trouver un créneau
-              </Link>
-              <Link
-                href="/matchs"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
-              >
-                <Users className="w-3.5 h-3.5" />
-                Chercher un partenaire
-              </Link>
-            </div>
-
-            {/* Compteurs publics — animés au scroll (count-up de 0 à N) */}
-            <div className="flex flex-wrap justify-center gap-4 pt-3 text-xs text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-3.5 h-3.5" />
-                <strong className="text-foreground tabular-nums">
-                  <AnimatedCounter value={stats.tournaments} />
-                </strong>{' '}
-                tournois
-              </div>
-              {stats.players > 0 && (
-                <Link
-                  href="/matchs"
-                  className="flex items-center gap-1.5 hover:text-emerald-700 transition-colors"
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <strong className="text-foreground tabular-nums">
-                    <AnimatedCounter value={stats.players} />
-                  </strong>{' '}
-                  joueur{stats.players > 1 ? 's' : ''}
-                  {stats.matchRequests > 0 && (
-                    <span>
-                      {' '}·{' '}
-                      <strong className="text-foreground tabular-nums">
-                        <AnimatedCounter value={stats.matchRequests} />
-                      </strong>{' '}
-                      annonce{stats.matchRequests > 1 ? 's' : ''}
-                    </span>
-                  )}
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Section "Comment ça marche" — 3 étapes avec animations au scroll */}
+      {/* "Comment ça marche" — 3 étapes claires */}
       <HowItWorks />
 
-      {/* Liste des tournois (composant client pour les filtres interactifs) */}
-      <section className="container mx-auto px-4 pb-12">
-        <TournamentList tournaments={tournaments} />
-      </section>
+      {/* Preview des clubs avec leurs vraies photos */}
+      <ClubsPreview clubs={clubs} />
 
-      {/* Section Americano & événements non-homologués (visible seulement s'il
-          y a au moins un event publié — évite une section vide qui fait
-          "site abandonné") */}
+      {/* Preview des tournois (6 cards + CTA "Voir tous") */}
+      <TournamentsPreview tournaments={tournaments} totalCount={stats.tournaments} />
+
+      {/* Preview des annonces matchmaking — seulement si y'en a au moins une */}
+      {matchRequests.length > 0 && (
+        <MatchesPreview
+          requests={matchRequests}
+          currentUserId={currentUser?.id ?? null}
+          totalCount={stats.matchRequests}
+        />
+      )}
+
+      {/* Section Americano — visible si au moins un event publié */}
       {events.length > 0 && (
-        <section className="container mx-auto px-4 pb-20">
+        <section className="container mx-auto px-4 py-12 md:py-16">
           <div className="flex items-center gap-2 mb-6">
-            <Sparkles className="w-5 h-5 text-amber-600" />
-            <h2 className="text-2xl font-bold">Americano & événements</h2>
+            <Sparkles className="w-7 h-7 text-amber-600" aria-hidden />
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+              Americano & événements
+            </h2>
           </div>
           <p className="text-sm text-muted-foreground mb-6">
             Tournois Americano, portes ouvertes, initiations et stages organisés
@@ -229,7 +198,30 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Footer minimal */}
+      {/* CTA final si l'utilisateur n'est pas connecté */}
+      {!currentUser && (
+        <section className="container mx-auto px-4 py-16 md:py-20">
+          <div className="max-w-3xl mx-auto text-center bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-8 md:p-12 text-white shadow-xl">
+            <Trophy className="w-10 h-10 mx-auto mb-4 opacity-90" aria-hidden />
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">
+              Rejoins la communauté padel locale
+            </h2>
+            <p className="text-emerald-50 mb-6 max-w-xl mx-auto">
+              Crée ton compte (30 secondes) pour poster une annonce de match,
+              voir le contact des autres joueurs et sauvegarder tes tournois favoris.
+            </p>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white text-emerald-700 font-semibold hover:bg-emerald-50 transition-colors"
+            >
+              <Users className="w-5 h-5" aria-hidden />
+              Créer mon compte gratuit
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Footer */}
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
         <p>
           Padel Amiens — Données publiques agrégées depuis{' '}

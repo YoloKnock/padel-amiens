@@ -44,7 +44,10 @@ export async function Header() {
 
         {/* Navigation centrale — visible sur sm+, scrollable horizontalement sinon */}
         <nav className="hidden sm:flex items-center gap-5 text-sm flex-1 justify-center">
-          <Link href="/" className="font-medium transition-colors hover:text-emerald-700">
+          <Link
+            href="/tournois"
+            className="font-medium transition-colors hover:text-emerald-700"
+          >
             Tournois
           </Link>
           <Link
@@ -98,7 +101,7 @@ export async function Header() {
       {/* Navigation mobile — scrollable horizontal sous le header sur < sm */}
       <nav className="sm:hidden border-t border-slate-100 bg-white/60 overflow-x-auto">
         <div className="container mx-auto px-4 flex items-center gap-5 text-sm h-11 whitespace-nowrap">
-          <Link href="/" className="font-medium hover:text-emerald-700">
+          <Link href="/tournois" className="font-medium hover:text-emerald-700">
             Tournois
           </Link>
           <Link href="/jouer" className="font-medium hover:text-emerald-700">
