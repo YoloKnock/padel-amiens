@@ -91,7 +91,7 @@ async function getFeaturedClubs(): Promise<
       .from('clubs')
       .select(
         'id, name, city, postal_code, latitude, longitude, booking_platform, ' +
-          'booking_url_template, contact_email, contact_phone, cover_image_url'
+          'booking_url_template, contact_email, contact_phone, cover_image_url, logo_url'
       )
       .in('id', FEATURED_IDS);
 

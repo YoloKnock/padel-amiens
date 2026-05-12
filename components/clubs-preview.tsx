@@ -63,14 +63,28 @@ export function ClubsPreview({ clubs }: ClubsPreviewProps) {
               href={`/club/${club.id}`}
               className="group block bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-emerald-300 hover:shadow-emerald-100/60 transition-all"
             >
-              {/* Photo cover plein largeur, ratio fixe pour homogénéité */}
-              <div className="relative aspect-[4/3] bg-gradient-to-br from-emerald-100 to-teal-200 overflow-hidden">
+              {/* Photo cover plein largeur, ratio fixe pour homogénéité.
+                  Hiérarchie de fallback :
+                    1) cover_image_url -> grande photo du complexe en object-cover
+                    2) logo_url        -> logo officiel centré (object-contain
+                                          pour ne pas être rogné, fond doux
+                                          pour faire ressortir le logo)
+                    3) icône MapPin    -> ultime fallback générique */}
+              <div className="relative aspect-[4/3] bg-gradient-to-br from-emerald-50 to-teal-100 overflow-hidden">
                 {club.cover_image_url ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={club.cover_image_url}
                     alt={`Photo du complexe ${club.name}`}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                ) : club.logo_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={club.logo_url}
+                    alt={`Logo ${club.name}`}
+                    className="absolute inset-0 w-3/5 h-3/5 m-auto object-contain transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
                 ) : (

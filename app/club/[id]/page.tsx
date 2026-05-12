@@ -54,7 +54,7 @@ async function getClub(id: string): Promise<BookableClub | null> {
     .from('clubs')
     .select(
       'id, name, city, postal_code, latitude, longitude, ' +
-      'booking_platform, booking_url_template, contact_email, contact_phone, cover_image_url'
+      'booking_platform, booking_url_template, contact_email, contact_phone, cover_image_url, logo_url'
     )
     .eq('id', id)
     .maybeSingle();
@@ -204,7 +204,7 @@ export default async function ClubPage({ params }: PageProps) {
           next/image pour éviter la config remotePatterns. Ratio fixe 21:9
           desktop / 16:9 mobile pour un look "couverture sportive".
           eslint-disable-next-line @next/next/no-img-element : intentionnel. */}
-      {club.cover_image_url && (
+      {club.cover_image_url ? (
         <div className="relative w-full h-48 md:h-72 overflow-hidden bg-slate-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -216,7 +216,21 @@ export default async function ClubPage({ params }: PageProps) {
           {/* Dégradé en bas pour fondre l'image dans le contenu */}
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent" />
         </div>
-      )}
+      ) : club.logo_url ? (
+        /* Pas de photo de complexe mais logo dispo : on l'affiche centré
+            sur un fond dégradé doux. Hauteur réduite (h-40 vs h-48) parce
+            qu'un logo seul n'a pas besoin d'autant de place qu'une photo. */
+        <div className="relative w-full h-40 md:h-56 overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={club.logo_url}
+            alt={`Logo ${club.name}`}
+            className="max-h-full max-w-[40%] object-contain"
+            loading="eager"
+          />
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent" />
+        </div>
+      ) : null}
 
       <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
         {/* Breadcrumb retour */}

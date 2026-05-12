@@ -57,6 +57,8 @@ export interface BookableClub {
   contact_phone: string | null;
   /** URL de la photo principale du club (hero sur /club/[id], thumb /jouer) */
   cover_image_url: string | null;
+  /** URL du logo officiel — utilisé en fallback si pas de cover_image_url */
+  logo_url: string | null;
 }
 
 // ============================================

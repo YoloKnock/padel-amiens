@@ -29,7 +29,17 @@ import {
 } from 'lucide-react';
 
 import { AnimatedCounter } from './animated-counter';
-import { PadelCourtIllustration } from './padel-court-illustration';
+
+// Photo source : Wikimedia Commons — Vigo Open 2019 du World Padel Tour.
+// Choix volontaire (vs un SVG ou Unsplash) :
+//   - C'est une VRAIE photo de padel, prise en compétition pro (WPT).
+//   - On voit clairement la balle en l'air + parois vitrées + sol bleu :
+//     impossible de confondre avec du tennis/badminton.
+//   - Licence Creative Commons sur Wikimedia Commons (réutilisable).
+//   - Hostée sur upload.wikimedia.org (CDN ultra-fiable, pas de risque
+//     de hotlink-block comme certains sites de clubs).
+const HERO_PADEL_PHOTO =
+  'https://upload.wikimedia.org/wikipedia/commons/e/ee/Vigo_Open_2019_de_World_Padel_Tour_-_38.jpg';
 
 interface HomeHeroProps {
   stats: {
@@ -129,14 +139,25 @@ export function HomeHero({ stats }: HomeHeroProps) {
             transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
             className="hidden lg:block relative"
           >
-            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
-              {/* Illustration SVG d'un court de padel vue en perspective.
-                  Choisi plutôt qu'une photo : pas de risque de confusion
-                  avec un autre sport (les recherches "padel" sur Unsplash
-                  ramènent souvent du tennis/badminton). 100% sûr, et look
-                  "blueprint moderne" cohérent avec un site tech.
-                  Pas un placement publicitaire pour un club en particulier. */}
-              <PadelCourtIllustration className="absolute inset-0 w-full h-full object-contain p-8" />
+            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-slate-900">
+              {/* Vraie photo : joueur en action sur court de padel (Vigo Open
+                  WPT 2019). Cf. constante HERO_PADEL_PHOTO en haut du fichier
+                  pour le pourquoi de ce choix. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={HERO_PADEL_PHOTO}
+                alt="Joueur de padel en compétition sur un court avec parois vitrées"
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="eager"
+                fetchPriority="high"
+              />
+              {/* Léger gradient bottom pour faire respirer les pastilles
+                  flottantes et améliorer la lisibilité (sans assombrir la
+                  photo qui est déjà bien). */}
+              <div
+                className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10"
+                aria-hidden
+              />
               {/* Pastilles flottantes : preuves sociales discrètes */}
               <FloatingPill
                 className="top-6 left-6"
