@@ -192,3 +192,64 @@
 .dark .hover\:bg-slate-100:hover {
   background-color: rgb(51 65 85);
 }
+
+/* ============================================
+   Variantes opacity sur bg-white (glassmorphism, pastilles)
+   ============================================
+   Le selecteur `.bg-white/95` produit en CSS `.bg-white\/95` avec
+   `background-color: rgb(255 255 255 / 0.95)`. Ces variantes n'étaient
+   pas couvertes par mon premier override — d'où des zones blanches
+   qui restaient blanches en dark mode. */
+
+.dark .bg-white\/95,
+.dark .bg-white\/80,
+.dark .bg-white\/75,
+.dark .bg-white\/60,
+.dark .bg-white\/50 {
+  background-color: rgb(15 23 42 / 0.85); /* slate-900 quasi opaque */
+}
+
+/* Borders blanches avec opacity (glassmorphism) */
+.dark .border-white\/40,
+.dark .border-white\/30,
+.dark .border-white\/20 {
+  border-color: rgb(51 65 85 / 0.4);
+}
+
+/* ============================================
+   Textes : remontée systématique de luminosité en dark
+   ============================================
+   Plus précis que mon premier override. text-slate-900 ne devrait jamais
+   rester noir sur un fond sombre. */
+
+.dark .text-slate-900,
+.dark .text-slate-800 {
+  color: rgb(241 245 249);
+}
+.dark .text-slate-500 {
+  color: rgb(148 163 184);
+}
+.dark .text-slate-400 {
+  color: rgb(148 163 184);
+}
+
+/* Bordures dividers (slate-100 en mode light = très discret) */
+.dark .divide-slate-100 > * + * {
+  border-color: rgb(30 41 59);
+}
+
+/* Gradient hero spécifique — les utility classes from-emerald-50/40,
+   to-white/60 utilisent dans tailwind un to-color qui s'applique mal en
+   dark. On force des valeurs sombres explicites. */
+.dark .from-white\/60 {
+  --tw-gradient-from: rgb(15 23 42 / 0.6) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+.dark .via-white\/60 {
+  --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), rgb(15 23 42 / 0.6) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+.dark .to-white {
+  --tw-gradient-to: rgb(2 6 23) var(--tw-gradient-to-position);
+}

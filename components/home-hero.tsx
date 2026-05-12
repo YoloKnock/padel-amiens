@@ -128,11 +128,15 @@ export function HomeHero({ stats }: HomeHeroProps) {
             transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
             className="hidden lg:block relative"
           >
-            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-emerald-600 to-teal-700">
+              {/* Photo OFFICIELLE d'Amiens Padel à Cagny — VRAI court de padel
+                  garanti (les Unsplash que j'avais essayées étaient en fait
+                  du badminton/tennis). Si l'image échoue, gradient emerald
+                  en fallback derrière. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=1200&q=95&auto=format&fit=crop"
-                alt="Court de padel avec ses vitres caractéristiques"
+                src="https://amiens-padel.fr/wp-content/uploads/2025/05/DSC00009.jpg"
+                alt="Court de padel à Amiens Padel Cagny"
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="eager"
                 fetchPriority="high"
