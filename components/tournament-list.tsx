@@ -7,7 +7,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Filter, MapPin, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, MapPin, Search, X } from 'lucide-react';
 
 import { GeolocationBanner } from './geolocation-banner';
 import { TournamentCard } from './tournament-card';
@@ -74,6 +74,11 @@ export function TournamentList({ tournaments }: TournamentListProps) {
     requestGeolocation,
     clearGeolocation,
   } = useUserLocation();
+
+  // Affichage des filtres avancés : cachés par défaut pour ne pas noyer
+  // l'utilisateur. Les filtres essentiels (recherche + période) restent
+  // toujours visibles.
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Date butoir pour le filtre période : aujourd'hui + maxDays.
   // Calculée une fois par changement de filtre (et pas dans chaque .filter()).
@@ -181,84 +186,23 @@ export function TournamentList({ tournaments }: TournamentListProps) {
           )}
         </div>
 
-        {/* Recherche libre (titre, club, ville) — mise en avant en haut */}
+        {/* ============================================
+            Filtres essentiels (toujours visibles)
+            ============================================ */}
+
+        {/* Recherche libre — l'élément le plus utilisé */}
         <div>
-          <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-            <Search className="w-3.5 h-3.5" />
-            Rechercher (ville, club, tournoi)
-          </label>
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ex : Cagny, Amiens Padel, P100..."
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-sm"
+            placeholder="🔍 Recherche : ville, club, tournoi…"
+            className="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-sm"
           />
         </div>
 
-        {/* Filtre Catégorie */}
-        <FilterGroup label="Catégorie">
-          {CATEGORIES.map((cat) => (
-            <FilterChip
-              key={cat}
-              active={selectedCategory === cat}
-              onClick={() =>
-                setSelectedCategory(selectedCategory === cat ? null : cat)
-              }
-            >
-              {cat}
-            </FilterChip>
-          ))}
-        </FilterGroup>
-
-        {/* Filtre Genre */}
-        <FilterGroup label="Genre">
-          {GENDERS.map((g) => (
-            <FilterChip
-              key={g}
-              active={selectedGender === g}
-              onClick={() => setSelectedGender(selectedGender === g ? null : g)}
-            >
-              {g.charAt(0).toUpperCase() + g.slice(1)}
-            </FilterChip>
-          ))}
-        </FilterGroup>
-
-        {/* Filtre Distance + bouton "Près de moi" */}
-        <FilterGroup label={userLocation ? 'Distance depuis ma position' : 'Distance depuis Cagny'}>
-          {DISTANCE_OPTIONS.map((opt) => (
-            <FilterChip
-              key={String(opt.value)}
-              active={maxDistance === opt.value}
-              onClick={() => setMaxDistance(opt.value)}
-            >
-              {opt.label}
-            </FilterChip>
-          ))}
-          {userLocation ? (
-            <button
-              onClick={clearGeolocation}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all"
-              title="Revenir à la distance depuis Cagny"
-            >
-              <MapPin className="w-3 h-3" />
-              Ma position
-              <X className="w-3 h-3 ml-0.5" />
-            </button>
-          ) : (
-            <button
-              onClick={requestGeolocation}
-              disabled={geoLoading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 transition-all"
-            >
-              <MapPin className="w-3 h-3" />
-              {geoLoading ? 'Localisation...' : 'Près de moi'}
-            </button>
-          )}
-        </FilterGroup>
-
-        {/* Filtre Période */}
-        <FilterGroup label="Période">
+        {/* Période — l'autre filtre le plus utilisé */}
+        <FilterGroup label="Quand">
           {PERIOD_OPTIONS.map((opt) => (
             <FilterChip
               key={String(opt.value)}
@@ -270,18 +214,103 @@ export function TournamentList({ tournaments }: TournamentListProps) {
           ))}
         </FilterGroup>
 
-        {/* Filtre Jour : semaine vs week-end */}
-        <FilterGroup label="Jour">
-          {DAY_TYPE_OPTIONS.map((opt) => (
-            <FilterChip
-              key={String(opt.value)}
-              active={dayType === opt.value}
-              onClick={() => setDayType(opt.value)}
-            >
-              {opt.label}
-            </FilterChip>
-          ))}
-        </FilterGroup>
+        {/* ============================================
+            Bouton "Plus de filtres" pour révéler les avancés
+            ============================================ */}
+        <button
+          onClick={() => setShowAdvanced((v) => !v)}
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {showAdvanced ? (
+            <>
+              <ChevronUp className="w-3.5 h-3.5" />
+              Moins de filtres
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              Plus de filtres (catégorie, genre, distance, jour)
+            </>
+          )}
+        </button>
+
+        {showAdvanced && (
+          <div className="space-y-4 pt-2 border-t border-slate-100">
+            {/* Catégorie */}
+            <FilterGroup label="Catégorie">
+              {CATEGORIES.map((cat) => (
+                <FilterChip
+                  key={cat}
+                  active={selectedCategory === cat}
+                  onClick={() =>
+                    setSelectedCategory(selectedCategory === cat ? null : cat)
+                  }
+                >
+                  {cat}
+                </FilterChip>
+              ))}
+            </FilterGroup>
+
+            {/* Genre */}
+            <FilterGroup label="Genre">
+              {GENDERS.map((g) => (
+                <FilterChip
+                  key={g}
+                  active={selectedGender === g}
+                  onClick={() => setSelectedGender(selectedGender === g ? null : g)}
+                >
+                  {g.charAt(0).toUpperCase() + g.slice(1)}
+                </FilterChip>
+              ))}
+            </FilterGroup>
+
+            {/* Distance + bouton "Près de moi" */}
+            <FilterGroup label={userLocation ? 'Distance depuis ma position' : 'Distance depuis Cagny'}>
+              {DISTANCE_OPTIONS.map((opt) => (
+                <FilterChip
+                  key={String(opt.value)}
+                  active={maxDistance === opt.value}
+                  onClick={() => setMaxDistance(opt.value)}
+                >
+                  {opt.label}
+                </FilterChip>
+              ))}
+              {userLocation ? (
+                <button
+                  onClick={clearGeolocation}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all"
+                  title="Revenir à la distance depuis Cagny"
+                >
+                  <MapPin className="w-3 h-3" />
+                  Ma position
+                  <X className="w-3 h-3 ml-0.5" />
+                </button>
+              ) : (
+                <button
+                  onClick={requestGeolocation}
+                  disabled={geoLoading}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 transition-all"
+                >
+                  <MapPin className="w-3 h-3" />
+                  {geoLoading ? 'Localisation...' : 'Près de moi'}
+                </button>
+              )}
+            </FilterGroup>
+
+            {/* Jour : semaine vs week-end */}
+            <FilterGroup label="Jour">
+              {DAY_TYPE_OPTIONS.map((opt) => (
+                <FilterChip
+                  key={String(opt.value)}
+                  active={dayType === opt.value}
+                  onClick={() => setDayType(opt.value)}
+                >
+                  {opt.label}
+                </FilterChip>
+              ))}
+            </FilterGroup>
+          </div>
+        )}
       </div>
 
       {/* Compteur de résultats */}

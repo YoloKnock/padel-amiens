@@ -110,72 +110,80 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Header />
 
-      {/* Hero section */}
-      <section className="container mx-auto px-4 py-12 md:py-20">
-        <div className="max-w-3xl mx-auto text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-sm font-medium">
-            <Trophy className="w-4 h-4" />
-            Tournois homologués FFT
-          </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-            Tous les tournois padel
-            <br />
-            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              autour d&apos;Amiens
-            </span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Le calendrier complet des P25, P50, P100 et plus dans la Somme et les Hauts-de-France.
-            Filtré par catégorie, genre et distance — depuis chez toi si tu actives la géoloc.
-          </p>
+      {/* Hero section — version condensée avec visuel de fond */}
+      <section className="relative overflow-hidden">
+        {/* Image de fond : terrain de padel libre de droits Unsplash.
+            Désaturée + overlay pour rester lisible. Le background-image
+            est posé via CSS inline pour ne pas devoir passer par next/image
+            (next/image protected demande un domain config, trop pour ici). */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1600&q=80&auto=format')",
+          }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-emerald-50/40 via-transparent to-white"
+          aria-hidden
+        />
 
-          {/* Mention claire de la zone couverte actuellement */}
-          <p className="text-xs text-muted-foreground/80 italic">
-            Actuellement pour Amiens et la région Hauts-de-France · D&apos;autres
-            zones arriveront selon vos retours
-          </p>
-
-          {/* CTA secondaire vers le widget de recherche de creneau */}
-          <div className="pt-2">
-            <Link
-              href="/jouer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-sm font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
-            >
-              <Search className="w-4 h-4" />
-              Ou trouve un terrain dispo en un clic
-            </Link>
-          </div>
-
-          {/* Compteurs publics — signal de vie du site */}
-          <div className="flex flex-wrap justify-center gap-6 pt-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>
-                <strong className="text-foreground">{stats.tournaments}</strong>{' '}
-                tournois à venir
+        <div className="container relative mx-auto px-4 py-10 md:py-16">
+          <div className="max-w-3xl mx-auto text-center space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium">
+              <Trophy className="w-3.5 h-3.5" />
+              Tournois homologués FFT · Amiens & Hauts-de-France
+            </div>
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
+              Le padel local,{' '}
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                en un endroit
               </span>
+            </h1>
+            <p className="text-base text-muted-foreground max-w-xl mx-auto">
+              Tournois, créneaux dispos, partenaires de jeu — tout au même
+              endroit, gratuit, local.
+            </p>
+
+            {/* CTA secondaires — discrets, regroupés */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <Link
+                href="/jouer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
+              >
+                <Search className="w-3.5 h-3.5" />
+                Trouver un créneau
+              </Link>
+              <Link
+                href="/matchs"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
+              >
+                <Users className="w-3.5 h-3.5" />
+                Chercher un partenaire
+              </Link>
+            </div>
+
+            {/* Compteurs publics — signal de vie */}
+            <div className="flex flex-wrap justify-center gap-4 pt-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5" />
+              <strong className="text-foreground">{stats.tournaments}</strong>{' '}
+              tournois
             </div>
             {stats.players > 0 && (
               <Link
                 href="/matchs"
-                className="flex items-center gap-2 hover:text-emerald-700 transition-colors"
+                className="flex items-center gap-1.5 hover:text-emerald-700 transition-colors"
               >
-                <Users className="w-4 h-4" />
-                <span>
-                  <strong className="text-foreground">{stats.players}</strong>{' '}
-                  joueur{stats.players > 1 ? 's' : ''} inscrit
-                  {stats.players > 1 ? 's' : ''}
-                  {stats.matchRequests > 0 && (
-                    <>
-                      {' '}· {stats.matchRequests} annonce{stats.matchRequests > 1 ? 's' : ''}
-                    </>
-                  )}
-                </span>
+                <Users className="w-3.5 h-3.5" />
+                <strong className="text-foreground">{stats.players}</strong>{' '}
+                joueur{stats.players > 1 ? 's' : ''}
+                {stats.matchRequests > 0 && (
+                  <span> · {stats.matchRequests} annonce{stats.matchRequests > 1 ? 's' : ''}</span>
+                )}
               </Link>
             )}
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Centré sur Amiens Padel (Cagny)
             </div>
           </div>
         </div>

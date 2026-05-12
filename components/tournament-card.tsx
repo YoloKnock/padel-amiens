@@ -17,7 +17,7 @@ import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 import { CalendarDays, CalendarPlus, Clock, ExternalLink, MapPin, Mail, Phone, User } from 'lucide-react';
 
-import { CATEGORY_COLORS } from '@/lib/constants';
+import { CATEGORY_COLORS, CATEGORY_GRADIENTS } from '@/lib/constants';
 import { parseTimeSlot, TIME_SLOT_LABELS } from '@/lib/tournament-helpers';
 import { cn, formatPhone } from '@/lib/utils';
 import type { TournamentWithClub } from '@/types/tournament';
@@ -39,6 +39,8 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
   const formattedDate = format(date, "EEEE d MMMM yyyy", { locale: fr });
 
   const categoryColor = CATEGORY_COLORS[tournament.category] ?? CATEGORY_COLORS.P100;
+  const categoryGradient =
+    CATEGORY_GRADIENTS[tournament.category] ?? CATEGORY_GRADIENTS.P100;
 
   // Créneau approximatif déduit du titre (journée, soirée, etc.)
   // Reste indicatif : la fiche officielle donne l'horaire exact.
@@ -49,8 +51,29 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
-      className="group relative bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md hover:border-slate-300 transition-all"
+      className="group relative bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md hover:border-slate-300 transition-all flex flex-col"
     >
+      {/* Bandeau coloré en tête : gradient catégorie + emoji 🎾 décoratif.
+          Effet "vrai site sport" sans aller chercher des images de stocks. */}
+      <div
+        className={cn(
+          'h-12 bg-gradient-to-br relative overflow-hidden',
+          categoryGradient
+        )}
+        aria-hidden
+      >
+        {/* Pattern subtil avec emoji répété — décoratif uniquement */}
+        <div className="absolute inset-0 flex items-center justify-end pr-4 opacity-20 text-3xl">
+          🎾
+        </div>
+        {/* Label catégorie en gros, écrit dans le bandeau */}
+        <div className="absolute inset-0 flex items-center px-5 text-white font-bold text-lg tracking-wide drop-shadow-sm">
+          {tournament.category}
+        </div>
+      </div>
+
+      <div className="p-5 flex-1 flex flex-col">
+
       {/* Header : badge catégorie + genre */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex flex-wrap gap-2">
@@ -172,6 +195,7 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
         <CalendarPlus className="w-3.5 h-3.5" />
         Ajouter à mon agenda
       </a>
+      </div>
     </motion.article>
   );
 }

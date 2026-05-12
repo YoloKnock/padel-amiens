@@ -41,3 +41,17 @@ export const CATEGORY_COLORS: Record<string, string> = {
   P1500: 'bg-orange-100 text-orange-800 border-orange-200',
   P2000: 'bg-red-100 text-red-800 border-red-200',
 };
+
+// Gradients utilisés en bandeau d'en-tête sur les cards tournoi
+// Donne un effet "vrai site sport" sans recourir à des images de tournoi
+// (qu'on n'a pas, et qu'on n'a pas envie de fake avec des stocks Unsplash).
+export const CATEGORY_GRADIENTS: Record<string, string> = {
+  P25: 'from-emerald-400 to-teal-500',
+  P50: 'from-teal-400 to-cyan-500',
+  P100: 'from-blue-400 to-indigo-500',
+  P250: 'from-indigo-400 to-violet-500',
+  P500: 'from-purple-400 to-pink-500',
+  P1000: 'from-amber-400 to-orange-500',
+  P1500: 'from-orange-400 to-red-500',
+  P2000: 'from-red-500 to-rose-600',
+};

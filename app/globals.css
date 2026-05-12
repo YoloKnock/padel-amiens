@@ -77,3 +77,118 @@
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 }
+
+/* ============================================
+   Mode sombre — overrides globaux
+   ============================================
+   Les composants utilisent massivement `bg-white`, `bg-slate-50`,
+   `border-slate-200`, etc. — ces classes ne basculent pas en dark par
+   défaut. Plutôt que de refactorer 30 fichiers, on déclare ici les
+   substitutions pour les classes les plus visibles. C'est pragmatique :
+   le résultat est cohérent, le code des composants reste lisible, et
+   on peut migrer progressivement vers `bg-card`/`bg-background` plus
+   tard sans casser. */
+
+.dark body {
+  background-color: rgb(2 6 23); /* slate-950 */
+  color: rgb(241 245 249); /* slate-100 */
+}
+
+/* Surfaces blanches → slate-900 (cards principales, formulaires, etc.) */
+.dark .bg-white {
+  background-color: rgb(15 23 42); /* slate-900 */
+}
+
+/* Surfaces grises claires → slate-800 (sections "muted", contacts, etc.) */
+.dark .bg-slate-50 {
+  background-color: rgb(30 41 59); /* slate-800 */
+}
+.dark .bg-slate-100 {
+  background-color: rgb(51 65 85); /* slate-700 */
+}
+
+/* Bordures */
+.dark .border-slate-200,
+.dark .border-slate-100,
+.dark .border-slate-300 {
+  border-color: rgb(51 65 85); /* slate-700 */
+}
+
+/* Textes : on remonte la luminosité pour le contraste sur fond sombre */
+.dark .text-slate-700,
+.dark .text-slate-600,
+.dark .text-foreground {
+  color: rgb(241 245 249); /* slate-100 */
+}
+.dark .text-muted-foreground {
+  color: rgb(148 163 184); /* slate-400 — toujours "muted" mais lisible */
+}
+
+/* Gradient hero — sombre cohérent */
+.dark .bg-gradient-to-b.from-slate-50 {
+  --tw-gradient-from: rgb(2 6 23);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+.dark .bg-gradient-to-b.to-white {
+  --tw-gradient-to: rgb(15 23 42);
+}
+
+/* Header sticky : on garde le backdrop blur mais on assombrit le fond */
+.dark .bg-white\/80 {
+  background-color: rgb(15 23 42 / 0.85);
+}
+
+/* Inputs : forcer les couleurs natives sombre */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: rgb(15 23 42);
+  color: rgb(241 245 249);
+  border-color: rgb(51 65 85);
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgb(100 116 139); /* slate-500 */
+}
+
+/* Couleurs colorées (emerald, amber, etc.) — on désature légèrement
+   pour qu'elles ne soient pas trop agressives sur fond sombre */
+.dark .bg-emerald-50 {
+  background-color: rgb(6 78 59 / 0.3); /* emerald-900 transparent */
+}
+.dark .bg-emerald-100 {
+  background-color: rgb(6 95 70 / 0.4);
+}
+.dark .text-emerald-800,
+.dark .text-emerald-900 {
+  color: rgb(110 231 183); /* emerald-300 */
+}
+.dark .border-emerald-200 {
+  border-color: rgb(6 95 70);
+}
+
+.dark .bg-amber-50 {
+  background-color: rgb(120 53 15 / 0.25);
+}
+.dark .border-amber-200 {
+  border-color: rgb(146 64 14);
+}
+.dark .text-amber-800,
+.dark .text-amber-900 {
+  color: rgb(252 211 77); /* amber-300 */
+}
+
+.dark .bg-red-50 {
+  background-color: rgb(127 29 29 / 0.25);
+}
+.dark .border-red-200 {
+  border-color: rgb(153 27 27);
+}
+
+/* Hover states — adapter pour fond sombre */
+.dark .hover\:bg-slate-50:hover {
+  background-color: rgb(30 41 59);
+}
+.dark .hover\:bg-slate-100:hover {
+  background-color: rgb(51 65 85);
+}
