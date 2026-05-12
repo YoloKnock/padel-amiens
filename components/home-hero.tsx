@@ -1,23 +1,32 @@
 // ============================================
-// Hero de la home — image impactante + parallax léger
+// Hero de la home — layout asymétrique pro
 // ============================================
-// Refonte demandée par Hugo : la précédente version avait une image
-// "à peine visible" à cause d'un overlay trop lourd. Approche nouvelle :
-//   - Image plein écran bien visible (opacity 0.55)
-//   - Pas d'overlay global qui mange l'image
-//   - Le TEXTE a son propre fond glassmorphism (backdrop-blur + bg semi-
-//     transparent) → lisible sans tuer l'image
-//   - Parallax léger : useScroll + useTransform = l'image bouge plus lentement
-//     que le contenu au scroll, donne une vraie profondeur
+// Refonte après retour Hugo : "image pas terrible, pixelisée, pense à la
+// card par-dessus". Nouveau parti-pris :
 //
-// Pattern qu'on voit sur les sites pro (Apple, Stripe landing).
+//   Desktop : layout SPLIT côte à côte.
+//     - Gauche  : contenu (texte + CTAs + stats) sur fond blanc/glass
+//     - Droite  : grande photo padel haute qualité, bien visible
+//   Mobile  : photo en background douce (flou subtil) + contenu par-dessus
+//
+// Avantages :
+//   1. La photo n'est plus "cachée derrière une card" — elle a son propre
+//      espace dédié à droite
+//   2. Le texte vit dans son espace tranquille à gauche, parfaitement
+//      lisible (pas besoin d'overlay lourd)
+//   3. Pattern qu'on voit sur Anybuddy, Airbnb, Stripe — éprouvé
 
 'use client';
 
 import Link from 'next/link';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
-import { ArrowDown, Calendar, MessageCircle, Search, Trophy, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
+import {
+  Calendar,
+  MessageCircle,
+  Search,
+  Trophy,
+  Users,
+} from 'lucide-react';
 
 import { AnimatedCounter } from './animated-counter';
 
@@ -30,147 +39,179 @@ interface HomeHeroProps {
 }
 
 export function HomeHero({ stats }: HomeHeroProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  // Parallax : l'image se déplace plus lentement que le scroll
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end start'],
-  });
-  // Image qui descend de 0 à 100px pendant que la section sort de l'écran
-  const imageY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
-  // Texte qui monte légèrement (effet contre-parallax pour la profondeur)
-  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '-10%']);
-
   return (
-    <section ref={containerRef} className="relative h-[88vh] min-h-[560px] max-h-[760px] overflow-hidden">
-      {/* Image padel plein écran avec parallax. Opacity 0.55 → bien visible
-          mais le texte par-dessus reste lisible grâce au glassmorphism. */}
-      <motion.div
-        style={{ y: imageY }}
-        className="absolute inset-0 -top-12 -bottom-12"
+    <section className="relative overflow-hidden border-b border-slate-200">
+      {/* Background pattern subtil — décoratif uniquement */}
+      <div
+        className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.08),_transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.15),_transparent_50%)]"
         aria-hidden
-      >
-        {/* Image haute qualité (q=95, w=2560) — terrain de padel intérieur,
-            grand angle avec ses vitres caractéristiques. Si nette à
-            l'affichage, c'est parce qu'on demande la version 2560px et qu'on
-            ne réduit pas l'image. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=2560&q=95&auto=format&fit=crop"
-          alt=""
-          className="w-full h-full object-cover"
-          loading="eager"
-          fetchPriority="high"
-        />
-        {/* Dégradé subtil du bas vers le contenu (fond du site) */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent" />
-      </motion.div>
+      />
 
-      {/* Contenu avec contre-parallax + glassmorphism sur le bloc texte */}
-      <motion.div
-        style={{ y: contentY }}
-        className="relative h-full flex items-center justify-center"
-      >
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto">
-            {/* Bloc texte avec backdrop-blur pour lisibilité sur photo */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: 'easeOut' }}
-              className="text-center bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl p-6 md:p-10 shadow-2xl border border-white/40 dark:border-slate-700/40"
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium mb-4">
-                <Trophy className="w-3.5 h-3.5" aria-hidden />
-                Tournois FFT · Amiens & Hauts-de-France
-              </div>
+      <div className="container relative mx-auto px-4 py-12 md:py-20">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* ============================================
+              Colonne GAUCHE : contenu
+              ============================================ */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="relative z-10"
+          >
+            {/* Pill catégorie */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium mb-5">
+              <Trophy className="w-3.5 h-3.5" aria-hidden />
+              Tournois FFT · Amiens & Hauts-de-France
+            </div>
 
-              <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-3">
-                Le padel local,{' '}
-                <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                  en un seul endroit
-                </span>
-              </h1>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] mb-5">
+              Le padel local,{' '}
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                tout en un.
+              </span>
+            </h1>
 
-              <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-lg mx-auto">
-                Tournois FFT, créneaux dispos, partenaires de jeu — tout au
-                même endroit, gratuit, et 100% local.
-              </p>
+            <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-lg">
+              Tournois FFT, créneaux dispos, partenaires de jeu — tout au
+              même endroit, gratuit, et 100% local.
+            </p>
 
-              {/* CTAs primaires */}
-              <div className="flex flex-wrap items-center justify-center gap-3 mb-5">
-                <Link
-                  href="/tournois"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all hover:scale-105 shadow-lg shadow-emerald-600/20"
-                >
-                  <Trophy className="w-4 h-4" aria-hidden />
-                  Voir les tournois
-                </Link>
-                <Link
-                  href="/jouer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-sm font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
-                >
-                  <Search className="w-4 h-4" aria-hidden />
-                  Trouver un créneau
-                </Link>
-                <Link
-                  href="/matchs"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-sm font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4" aria-hidden />
-                  Trouver un partenaire
-                </Link>
-              </div>
+            {/* CTAs primaires */}
+            <div className="flex flex-wrap gap-3 mb-8">
+              <Link
+                href="/tournois"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all hover:shadow-lg hover:shadow-emerald-600/30 hover:-translate-y-0.5"
+              >
+                <Trophy className="w-4 h-4" aria-hidden />
+                Voir les tournois
+              </Link>
+              <Link
+                href="/jouer"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-slate-200 text-sm font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
+              >
+                <Search className="w-4 h-4" aria-hidden />
+                Trouver un créneau
+              </Link>
+              <Link
+                href="/matchs"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-slate-200 text-sm font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" aria-hidden />
+                Un partenaire
+              </Link>
+            </div>
 
-              {/* Compteurs animés (count-up au mount) */}
-              <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4" aria-hidden />
-                  <strong className="text-foreground tabular-nums">
-                    <AnimatedCounter value={stats.tournaments} />
-                  </strong>{' '}
-                  tournois
-                </div>
-                {stats.players > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4" aria-hidden />
-                    <strong className="text-foreground tabular-nums">
-                      <AnimatedCounter value={stats.players} />
-                    </strong>{' '}
-                    joueur{stats.players > 1 ? 's' : ''}
-                  </div>
-                )}
-                {stats.matchRequests > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <MessageCircle className="w-4 h-4" aria-hidden />
-                    <strong className="text-foreground tabular-nums">
-                      <AnimatedCounter value={stats.matchRequests} />
-                    </strong>{' '}
-                    annonce{stats.matchRequests > 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
+            {/* Compteurs en pills discrètes, animés au mount */}
+            <div className="flex flex-wrap gap-3">
+              <Stat icon={Calendar} value={stats.tournaments} label="tournois" />
+              {stats.players > 0 && (
+                <Stat icon={Users} value={stats.players} label={stats.players > 1 ? 'joueurs' : 'joueur'} />
+              )}
+              {stats.matchRequests > 0 && (
+                <Stat
+                  icon={MessageCircle}
+                  value={stats.matchRequests}
+                  label={stats.matchRequests > 1 ? 'annonces' : 'annonce'}
+                />
+              )}
+            </div>
+          </motion.div>
+
+          {/* ============================================
+              Colonne DROITE : photo haute qualité, bord arrondi
+              ============================================
+              Cachée sur mobile et tablette (lg:block) pour laisser respirer
+              le contenu en colonne unique. */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
+            className="hidden lg:block relative"
+          >
+            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=1200&q=95&auto=format&fit=crop"
+                alt="Court de padel avec ses vitres caractéristiques"
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="eager"
+                fetchPriority="high"
+              />
+              {/* Pastilles flottantes : preuves sociales discrètes */}
+              <FloatingPill
+                className="top-6 left-6"
+                icon={Trophy}
+                text={`${stats.tournaments} tournois FFT`}
+              />
+              {stats.players > 0 && (
+                <FloatingPill
+                  className="bottom-6 right-6"
+                  icon={Users}
+                  text="Communauté locale"
+                />
+              )}
+            </div>
+
+            {/* Mini visuel décoratif sous l'image (forme abstraite emerald) */}
+            <div
+              className="absolute -bottom-8 -left-8 w-32 h-32 rounded-3xl bg-gradient-to-br from-emerald-400 to-teal-500 opacity-20 -z-10"
+              aria-hidden
+            />
+            <div
+              className="absolute -top-8 -right-8 w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 opacity-15 -z-10"
+              aria-hidden
+            />
+          </motion.div>
         </div>
-      </motion.div>
-
-      {/* Indicateur "scroll vers le bas" — discret, anime un peu */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 0.5 }}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-          className="text-muted-foreground"
-          aria-hidden
-        >
-          <ArrowDown className="w-5 h-5" />
-        </motion.div>
-      </motion.div>
+      </div>
     </section>
+  );
+}
+
+// ============================================
+// Sous-composant : Stat pill avec compteur animé
+// ============================================
+function Stat({
+  icon: Icon,
+  value,
+  label,
+}: {
+  icon: typeof Trophy;
+  value: number;
+  label: string;
+}) {
+  return (
+    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm">
+      <Icon className="w-4 h-4 text-emerald-600" aria-hidden />
+      <strong className="text-foreground tabular-nums">
+        <AnimatedCounter value={value} />
+      </strong>
+      <span className="text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+// ============================================
+// Pastilles flottantes sur la photo droite (effet "social proof")
+// ============================================
+function FloatingPill({
+  className = '',
+  icon: Icon,
+  text,
+}: {
+  className?: string;
+  icon: typeof Trophy;
+  text: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, delay: 0.6 }}
+      className={`absolute inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/95 backdrop-blur-md shadow-lg text-xs font-medium ${className}`}
+    >
+      <Icon className="w-3.5 h-3.5 text-emerald-600" aria-hidden />
+      {text}
+    </motion.div>
   );
 }

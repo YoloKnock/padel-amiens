@@ -11,6 +11,7 @@ import { Sparkles, Trophy, Users } from 'lucide-react';
 
 import { ClubsPreview } from '@/components/clubs-preview';
 import { EventCard } from '@/components/event-card';
+import { Footer } from '@/components/footer';
 import { HomeHero } from '@/components/home-hero';
 import { HowItWorks } from '@/components/how-it-works';
 import { MatchesPreview } from '@/components/matches-preview';
@@ -222,40 +223,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        <p>
-          Padel Amiens — Données publiques agrégées depuis{' '}
-          <a
-            href="https://tournois.padelmagazine.fr/ligues/hauts-de-france"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Padel Magazine
-          </a>
-        </p>
-        <p className="mt-2">
-          Pas affilié à la FFT. Pour s&apos;inscrire, passer par{' '}
-          <a
-            href="https://tenup.fft.fr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Ten&apos;Up
-          </a>
-          .
-        </p>
-        <p className="mt-4 flex flex-wrap justify-center gap-4">
-          <Link href="/a-propos" className="underline hover:text-foreground">
-            À propos
-          </Link>
-          <Link href="/mentions-legales" className="underline hover:text-foreground">
-            Mentions légales
-          </Link>
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }
