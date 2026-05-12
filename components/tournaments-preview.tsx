@@ -60,10 +60,21 @@ export function TournamentsPreview({ tournaments, totalCount }: TournamentsPrevi
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {preview.map((t, i) => (
-            <TournamentCard key={t.id} tournament={t} index={i} />
-          ))}
+        /* Carrousel horizontal : ligne unique scrollable. Snap-x pour aligner
+           les cards proprement après un swipe. Largeur fixe par card pour que
+           le user voit toujours "la prochaine card qui dépasse" — invitation
+           visuelle à scroller. Le scrollbar est caché sur Webkit. */
+        <div className="-mx-4 px-4 overflow-x-auto scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+          <div className="flex gap-4 pb-2">
+            {preview.map((t, i) => (
+              <div
+                key={t.id}
+                className="snap-start flex-shrink-0 w-[300px] sm:w-[340px]"
+              >
+                <TournamentCard tournament={t} index={i} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </section>

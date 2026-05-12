@@ -165,10 +165,11 @@ export default async function HomePage() {
       {/* Preview des clubs avec leurs vraies photos */}
       <ClubsPreview clubs={clubs} />
 
-      {/* Preview des tournois (6 cards + CTA "Voir tous") */}
+      {/* Tournois en LIGNE horizontale scrollable (demande Hugo) */}
       <TournamentsPreview tournaments={tournaments} totalCount={stats.tournaments} />
 
-      {/* Preview des annonces matchmaking — seulement si y'en a au moins une */}
+      {/* Partenaires (annonces matchmaking) — JUSTE EN DESSOUS des tournois.
+          Caché si zéro annonce pour éviter l'effet "site mort". */}
       {matchRequests.length > 0 && (
         <MatchesPreview
           requests={matchRequests}

@@ -50,12 +50,17 @@ export function HomeHero({ stats }: HomeHeroProps) {
         className="absolute inset-0 -top-12 -bottom-12"
         aria-hidden
       >
+        {/* Image haute qualité (q=95, w=2560) — terrain de padel intérieur,
+            grand angle avec ses vitres caractéristiques. Si nette à
+            l'affichage, c'est parce qu'on demande la version 2560px et qu'on
+            ne réduit pas l'image. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="https://images.unsplash.com/photo-1743456110628-6508997cf730?w=2000&q=85&auto=format&fit=crop"
+          src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=2560&q=95&auto=format&fit=crop"
           alt=""
           className="w-full h-full object-cover"
           loading="eager"
+          fetchPriority="high"
         />
         {/* Dégradé subtil du bas vers le contenu (fond du site) */}
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent" />

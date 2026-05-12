@@ -359,9 +359,9 @@ function ClubBookingCard({
             loading="lazy"
           />
         ) : (
-          /* Pas de photo : emoji 🎾 décoratif en gros */
-          <div className="absolute inset-0 flex items-center justify-center text-5xl opacity-40">
-            🎾
+          /* Pas de photo : icône MapPin centrée, look plus pro qu'un emoji */
+          <div className="absolute inset-0 flex items-center justify-center">
+            <MapPin className="w-10 h-10 text-emerald-600/30" aria-hidden />
           </div>
         )}
       </Link>

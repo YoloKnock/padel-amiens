@@ -74,8 +74,8 @@ export function ClubsPreview({ clubs }: ClubsPreviewProps) {
                     loading="lazy"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-5xl opacity-40" aria-hidden>
-                    🎾
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <MapPin className="w-12 h-12 text-emerald-600/40" aria-hidden />
                   </div>
                 )}
                 {/* Overlay gradient bottom pour lisibilité du badge distance */}
