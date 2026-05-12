@@ -52,8 +52,9 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
-      className="group relative bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md hover:border-slate-300 transition-all"
+      className="group relative bg-white rounded-xl border border-slate-200 p-5 hover:shadow-xl hover:border-amber-300 hover:shadow-amber-100/60 transition-all"
     >
       {/* Header : badge type + distance */}
       <div className="flex items-start justify-between gap-2 mb-3">

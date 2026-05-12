@@ -50,8 +50,9 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
-      className="group relative bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md hover:border-slate-300 transition-all flex flex-col"
+      className="group relative bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-emerald-300 hover:shadow-emerald-100/60 transition-all flex flex-col"
     >
       {/* Bandeau coloré en tête : gradient catégorie + emoji 🎾 décoratif.
           Effet "vrai site sport" sans aller chercher des images de stocks. */}

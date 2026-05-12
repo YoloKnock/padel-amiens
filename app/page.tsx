@@ -7,7 +7,9 @@
 import Link from 'next/link';
 import { MapPin, Trophy, Calendar, Sparkles, Search, Users } from 'lucide-react';
 
+import { AnimatedCounter } from '@/components/animated-counter';
 import { EventCard } from '@/components/event-card';
+import { HowItWorks } from '@/components/how-it-works';
 import { TournamentList } from '@/components/tournament-list';
 import { Header } from '@/components/header';
 import { createAdminClient } from '@/lib/supabase';
@@ -110,22 +112,21 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Header />
 
-      {/* Hero section — version condensée avec visuel de fond */}
+      {/* Hero section — vraie photo de padel + overlay gradient */}
       <section className="relative overflow-hidden">
-        {/* Image de fond : terrain de padel libre de droits Unsplash.
-            Désaturée + overlay pour rester lisible. Le background-image
-            est posé via CSS inline pour ne pas devoir passer par next/image
-            (next/image protected demande un domain config, trop pour ici). */}
+        {/* Vraie image de padel (Unsplash, libre de droits) — un joueur sur
+            un court de padel typique avec ses vitres. Opacity 0.25 +
+            overlay pour rester lisible en mode clair et sombre. */}
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.18]"
+          className="absolute inset-0 bg-cover bg-center opacity-25 dark:opacity-20"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1600&q=80&auto=format')",
+              "url('https://images.unsplash.com/photo-1743456110628-6508997cf730?w=1600&q=75&auto=format&fit=crop')",
           }}
           aria-hidden
         />
         <div
-          className="absolute inset-0 bg-gradient-to-b from-emerald-50/40 via-transparent to-white"
+          className="absolute inset-0 bg-gradient-to-b from-emerald-50/60 via-white/60 to-white dark:from-slate-900/40 dark:via-slate-950/60 dark:to-slate-950"
           aria-hidden
         />
 
@@ -164,30 +165,43 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            {/* Compteurs publics — signal de vie */}
+            {/* Compteurs publics — animés au scroll (count-up de 0 à N) */}
             <div className="flex flex-wrap justify-center gap-4 pt-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5" />
-              <strong className="text-foreground">{stats.tournaments}</strong>{' '}
-              tournois
-            </div>
-            {stats.players > 0 && (
-              <Link
-                href="/matchs"
-                className="flex items-center gap-1.5 hover:text-emerald-700 transition-colors"
-              >
-                <Users className="w-3.5 h-3.5" />
-                <strong className="text-foreground">{stats.players}</strong>{' '}
-                joueur{stats.players > 1 ? 's' : ''}
-                {stats.matchRequests > 0 && (
-                  <span> · {stats.matchRequests} annonce{stats.matchRequests > 1 ? 's' : ''}</span>
-                )}
-              </Link>
-            )}
+              <div className="flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5" />
+                <strong className="text-foreground tabular-nums">
+                  <AnimatedCounter value={stats.tournaments} />
+                </strong>{' '}
+                tournois
+              </div>
+              {stats.players > 0 && (
+                <Link
+                  href="/matchs"
+                  className="flex items-center gap-1.5 hover:text-emerald-700 transition-colors"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <strong className="text-foreground tabular-nums">
+                    <AnimatedCounter value={stats.players} />
+                  </strong>{' '}
+                  joueur{stats.players > 1 ? 's' : ''}
+                  {stats.matchRequests > 0 && (
+                    <span>
+                      {' '}·{' '}
+                      <strong className="text-foreground tabular-nums">
+                        <AnimatedCounter value={stats.matchRequests} />
+                      </strong>{' '}
+                      annonce{stats.matchRequests > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </Link>
+              )}
             </div>
           </div>
         </div>
       </section>
+
+      {/* Section "Comment ça marche" — 3 étapes avec animations au scroll */}
+      <HowItWorks />
 
       {/* Liste des tournois (composant client pour les filtres interactifs) */}
       <section className="container mx-auto px-4 pb-12">
