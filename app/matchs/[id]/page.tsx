@@ -12,8 +12,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, CalendarDays, Clock, Lock, Mail, MapPin, MessageCircle, Phone, User } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, Lock, Mail, MapPin, MessageCircle, Phone, Send, User } from 'lucide-react';
 
+import { Avatar } from '@/components/avatar';
 import { DeleteMatchRequestButton } from '@/components/delete-match-request-button';
 import { Header } from '@/components/header';
 import { createAdminClient } from '@/lib/supabase';
@@ -43,6 +44,7 @@ interface ProfileWithEmail {
   level: string | null;
   city: string | null;
   contact_phone: string | null;
+  avatar_url: string | null;
   email: string;
 }
 
@@ -71,7 +73,7 @@ async function getProfileWithEmail(profileId: string): Promise<ProfileWithEmail 
   const [profileRes, userRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('pseudo, level, city, contact_phone')
+      .select('pseudo, level, city, contact_phone, avatar_url')
       .eq('id', profileId)
       .maybeSingle(),
     supabase.auth.admin.getUserById(profileId),
@@ -125,20 +127,32 @@ export default async function MatchRequestDetailPage({ params }: PageProps) {
         </Link>
 
         <article className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
-          {/* Auteur */}
+          {/* Auteur : avatar + pseudo cliquable vers son profil public */}
           <header className="flex items-start justify-between gap-3 mb-6 pb-6 border-b border-slate-100">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <User className="w-6 h-6 text-emerald-600" />
-                {author.pseudo}
-              </h1>
-              {author.city && (
-                <p className="text-sm text-muted-foreground mt-1">📍 {author.city}</p>
-              )}
-              {author.level && (
-                <p className="text-sm text-muted-foreground">Niveau : {author.level}</p>
-              )}
-            </div>
+            <Link
+              href={`/joueur/${encodeURIComponent(author.pseudo)}`}
+              className="flex items-start gap-3 group hover:opacity-80 transition-opacity"
+            >
+              <Avatar
+                url={author.avatar_url}
+                name={author.pseudo}
+                size="lg"
+              />
+              <div>
+                <h1 className="text-2xl font-bold group-hover:text-emerald-700 transition-colors">
+                  {author.pseudo}
+                </h1>
+                {author.city && (
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {author.city}
+                  </p>
+                )}
+                {author.level && (
+                  <p className="text-sm text-muted-foreground">Niveau : {author.level}</p>
+                )}
+              </div>
+            </Link>
             {isOwner && (
               <span className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-800 font-medium whitespace-nowrap">
                 Ton annonce
@@ -206,29 +220,38 @@ export default async function MatchRequestDetailPage({ params }: PageProps) {
               </div>
             ) : (
               <div className="space-y-2">
-                <a
-                  href={`mailto:${author.email}?subject=${encodeURIComponent('Padel Amiens - réponse à ton annonce')}`}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-sm"
+                {/* CTA principal : DM interne (ne dévoile pas le mail) */}
+                <Link
+                  href={`/messages/nouveau?to=${request.profile_id}`}
+                  className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-colors"
                 >
-                  <Mail className="w-4 h-4" />
-                  <span>{author.email}</span>
-                </a>
-                {author.contact_phone && (
+                  <Send className="w-4 h-4" />
+                  Envoyer un message
+                </Link>
+
+                {/* Contacts directs (mail + tel) en secondaire — pratique pour
+                    ceux qui préfèrent passer par leur app native */}
+                <div className="pt-3 mt-3 border-t border-slate-100 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Ou contact direct :
+                  </p>
                   <a
-                    href={`tel:${author.contact_phone}`}
+                    href={`mailto:${author.email}?subject=${encodeURIComponent('Padel Amiens - réponse à ton annonce')}`}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-sm"
                   >
-                    <Phone className="w-4 h-4" />
-                    <span>{formatPhone(author.contact_phone)}</span>
+                    <Mail className="w-4 h-4" />
+                    <span>{author.email}</span>
                   </a>
-                )}
-                <a
-                  href={`mailto:${author.email}?subject=${encodeURIComponent('Padel Amiens - réponse à ton annonce')}`}
-                  className="mt-3 inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Écrire un message
-                </a>
+                  {author.contact_phone && (
+                    <a
+                      href={`tel:${author.contact_phone}`}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-sm"
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span>{formatPhone(author.contact_phone)}</span>
+                    </a>
+                  )}
+                </div>
               </div>
             )}
           </div>

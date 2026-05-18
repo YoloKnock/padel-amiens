@@ -12,9 +12,10 @@ import { useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock, MapPin, MessageCircle, Trash2, User } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, MessageCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Avatar } from './avatar';
 import type { MatchRequestRow } from '@/app/matchs/page';
 
 interface MatchRequestCardProps {
@@ -65,32 +66,38 @@ export function MatchRequestCard({
       transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
       className="group relative bg-white rounded-xl border border-slate-200 p-5 hover:shadow-xl hover:border-emerald-300 hover:shadow-emerald-100/60 transition-all"
     >
-      {/* Header : pseudo (cliquable -> /joueur/[pseudo]) + ville + badge "Toi" */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div>
-          <h3 className="font-semibold text-base flex items-center gap-2">
-            <User className="w-4 h-4 text-emerald-600" />
-            <Link
-              href={`/joueur/${encodeURIComponent(request.profile_pseudo)}`}
-              className="relative z-10 hover:text-emerald-700 transition-colors"
-            >
-              {request.profile_pseudo}
-            </Link>
-            {isOwner && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">
-                Toi
-              </span>
+      {/* Header : avatar + pseudo (cliquable -> /joueur/[pseudo]) + ville + badge "Toi" */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <Avatar
+            url={request.profile_avatar_url}
+            name={request.profile_pseudo}
+            size="md"
+          />
+          <div className="min-w-0">
+            <h3 className="font-semibold text-base flex items-center gap-2 flex-wrap">
+              <Link
+                href={`/joueur/${encodeURIComponent(request.profile_pseudo)}`}
+                className="relative z-10 hover:text-emerald-700 transition-colors"
+              >
+                {request.profile_pseudo}
+              </Link>
+              {isOwner && (
+                <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">
+                  Toi
+                </span>
+              )}
+            </h3>
+            {request.profile_city && (
+              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                <MapPin className="w-3 h-3" aria-hidden />
+                {request.profile_city}
+              </p>
             )}
-          </h3>
-          {request.profile_city && (
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <MapPin className="w-3 h-3" aria-hidden />
-              {request.profile_city}
-            </p>
-          )}
+          </div>
         </div>
         {request.profile_level && (
-          <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium whitespace-nowrap">
+          <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium whitespace-nowrap flex-shrink-0">
             {request.profile_level}
           </span>
         )}

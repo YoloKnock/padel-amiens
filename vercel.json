@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/scrape-tournaments",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/send-tournament-alerts",
+      "schedule": "30 6 * * *"
     }
   ]
 }

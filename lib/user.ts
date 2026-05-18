@@ -64,6 +64,7 @@ export interface PublicProfile {
   city: string | null;
   contact_phone: string | null;
   is_adult: boolean;
+  avatar_url: string | null;
 }
 
 export async function getCurrentProfile(): Promise<PublicProfile | null> {
@@ -73,7 +74,7 @@ export async function getCurrentProfile(): Promise<PublicProfile | null> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, pseudo, level, city, contact_phone, is_adult')
+    .select('id, pseudo, level, city, contact_phone, is_adult, avatar_url')
     .eq('id', user.id)
     .maybeSingle();
 

@@ -12,10 +12,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowLeft, CalendarDays, Clock, MapPin, MessageCircle, User } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, MapPin, MessageCircle, Send, User } from 'lucide-react';
 
+import { Avatar } from '@/components/avatar';
 import { Header } from '@/components/header';
 import { createAdminClient } from '@/lib/supabase';
+import { getCurrentUser } from '@/lib/user';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +30,7 @@ interface PublicProfileView {
   pseudo: string;
   level: string | null;
   city: string | null;
+  avatar_url: string | null;
 }
 
 interface MatchRequestPreview {
@@ -48,7 +51,7 @@ async function getProfileByPseudo(pseudo: string): Promise<PublicProfileView | n
   // ilike pour matcher pseudo case-insensitive (cohérent avec l'index unique)
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, pseudo, level, city')
+    .select('id, pseudo, level, city, avatar_url')
     .ilike('pseudo', pseudo)
     .maybeSingle();
 
@@ -90,7 +93,13 @@ export default async function JoueurPage({ params }: PageProps) {
   const profile = await getProfileByPseudo(pseudo);
   if (!profile) notFound();
 
-  const requests = await getActiveRequestsFor(profile.id);
+  const [requests, currentUser] = await Promise.all([
+    getActiveRequestsFor(profile.id),
+    getCurrentUser(),
+  ]);
+  // On n'affiche le bouton "Envoyer un message" que si l'utilisateur n'est
+  // pas en train de regarder son propre profil (auto-DM pas pertinent).
+  const isOwnProfile = currentUser?.id === profile.id;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -106,21 +115,20 @@ export default async function JoueurPage({ params }: PageProps) {
         </Link>
 
         {/* ============================================
-            En-tête : avatar + pseudo + meta
+            En-tête : avatar grand format + pseudo + meta + CTA message
             ============================================ */}
-        <header className="flex items-start gap-4 mb-8">
-          <span
-            aria-hidden
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 font-bold text-2xl flex-shrink-0"
-          >
-            {profile.pseudo[0]?.toUpperCase() ?? '?'}
-          </span>
+        <header className="flex flex-wrap items-start gap-4 mb-8">
+          <Avatar
+            url={profile.avatar_url}
+            name={profile.pseudo}
+            size="xl"
+          />
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl md:text-3xl font-bold mb-1 flex items-center gap-2">
               <User className="w-6 h-6 text-emerald-600" />
               {profile.pseudo}
             </h1>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
               {profile.city && (
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" />
@@ -133,6 +141,21 @@ export default async function JoueurPage({ params }: PageProps) {
                 </span>
               )}
             </div>
+            {/* Bouton "Envoyer un message" — ouvre /messages/nouveau?to=<id>
+                qui crée la conversation et redirige sur /messages/[id]. */}
+            {!isOwnProfile && (
+              <Link
+                href={
+                  currentUser
+                    ? `/messages/nouveau?to=${profile.id}`
+                    : `/login?next=${encodeURIComponent(`/messages/nouveau?to=${profile.id}`)}`
+                }
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
+              >
+                <Send className="w-4 h-4" />
+                Envoyer un message
+              </Link>
+            )}
           </div>
         </header>
 

@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+import { AvatarUpload } from './avatar-upload';
 import type { PublicProfile } from '@/lib/user';
 
 interface ProfileFormProps {
@@ -63,6 +64,18 @@ export function ProfileForm({ profile, email }: ProfileFormProps) {
 
   return (
     <form action={handleSubmit} className="space-y-4">
+      {/* Photo de profil : upload indépendant du save du form
+          (feedback instantané, pas besoin d'attendre "Enregistrer") */}
+      {!isNew && profile && (
+        <div className="pb-4 border-b border-slate-100">
+          <label className="block text-sm font-medium mb-2">Photo de profil</label>
+          <AvatarUpload
+            currentUrl={profile.avatar_url}
+            pseudo={profile.pseudo}
+          />
+        </div>
+      )}
+
       {/* Email en read-only (info, non éditable) */}
       <div>
         <label className="block text-sm font-medium mb-1">Email</label>

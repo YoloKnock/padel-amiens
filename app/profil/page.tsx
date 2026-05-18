@@ -10,13 +10,14 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
   ArrowRight,
+  Bell,
   CalendarDays,
   CalendarPlus,
   Heart,
   MapPin,
-  Trophy,
 } from 'lucide-react';
 
+import { AlertPreferencesForm } from '@/components/alert-preferences-form';
 import { DeleteMatchRequestButton } from '@/components/delete-match-request-button';
 import { Header } from '@/components/header';
 import { ProfileForm } from '@/components/profile-form';
@@ -193,6 +194,24 @@ export default async function ProfilePage() {
                 })}
               </ul>
             )}
+          </section>
+        )}
+
+        {/* ============================================
+            Alertes email tournois
+            ============================================
+            Visible uniquement si profil créé : ça suit la logique des autres
+            sections (le user doit avoir un pseudo avant de pouvoir paramétrer
+            le reste). */}
+        {!isNew && (
+          <section className="mt-8">
+            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Bell className="w-5 h-5 text-emerald-600" />
+              Alertes nouveaux tournois
+            </h2>
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
+              <AlertPreferencesForm />
+            </div>
           </section>
         )}
 

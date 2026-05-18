@@ -40,6 +40,7 @@ export interface MatchRequestRow {
   profile_pseudo: string;
   profile_level: string | null;
   profile_city: string | null;
+  profile_avatar_url: string | null;
 }
 
 async function getMatchRequests(): Promise<MatchRequestRow[]> {
