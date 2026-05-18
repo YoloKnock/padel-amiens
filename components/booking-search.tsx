@@ -29,11 +29,13 @@ import {
   Navigation,
   Phone,
   Search,
+  SearchX,
   Sliders,
 } from 'lucide-react';
 
 import { ClubsMapClient } from './clubs-map-client';
 import { GeolocationBanner } from './geolocation-banner';
+import { EmptyState as SharedEmptyState } from './ui/empty-state';
 import { BOOKING_HOURS, BOOKING_PLATFORM_LABELS, buildBookingUrl } from '@/lib/booking';
 import { distanceKm } from '@/lib/geo';
 import { useUserLocation } from '@/hooks/use-user-location';
@@ -484,8 +486,10 @@ function ClubBookingCard({
 }
 
 // ============================================
-// État vide (aucun résultat)
+// État vide (aucun résultat) — wrapper sur le SharedEmptyState
 // ============================================
+// Délègue à components/ui/empty-state.tsx pour le visuel unifié. On
+// adapte juste les labels selon qu'il y a une recherche active ou pas.
 function EmptyState({
   hasSearch,
   onClearSearch,
@@ -494,19 +498,20 @@ function EmptyState({
   onClearSearch: () => void;
 }) {
   return (
-    <div className="text-center py-12 text-muted-foreground bg-white rounded-xl border border-slate-200 space-y-3">
-      <p>Aucun centre ne correspond à tes critères.</p>
-      {hasSearch ? (
-        <button
-          onClick={onClearSearch}
-          className="text-sm text-emerald-700 underline hover:text-emerald-800"
-        >
-          Effacer la recherche
-        </button>
-      ) : (
-        <p className="text-sm">Essaie d&apos;augmenter la distance max.</p>
-      )}
-    </div>
+    <SharedEmptyState
+      icon={SearchX}
+      title="Aucun centre ne correspond"
+      description={
+        hasSearch
+          ? 'Essaie d’élargir le rayon de distance ou de simplifier ta recherche.'
+          : 'Augmente la distance max ou enlève le créneau pour voir plus de clubs.'
+      }
+      action={
+        hasSearch
+          ? { label: 'Effacer la recherche', onClick: onClearSearch }
+          : undefined
+      }
+    />
   );
 }
 

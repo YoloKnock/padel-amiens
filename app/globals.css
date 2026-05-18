@@ -76,6 +76,31 @@
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
+
+  /* ============================================
+     Accessibilité : focus visible global
+     ============================================
+     Audit UX : la couverture de focus-visible était de 0% sur les liens
+     et boutons. On pose ici un fallback élégant qui s'applique partout
+     dès qu'un utilisateur navigue au clavier (Tab/Shift+Tab) :
+       - anneau emerald 500 de 2px
+       - offset 2px pour ne pas coller à l'élément
+       - rayon arrondi adapté
+     Les composants peuvent toujours overrider avec leur propre
+     focus-visible:ring-* si besoin (cf. Button, BottomNav). */
+  *:focus-visible {
+    outline: 2px solid hsl(160 84% 39%); /* emerald-500 */
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Évite le double-focus visuel sur les inputs/textarea (qui ont déjà
+     leur propre focus:border-emerald-500 défini dans les composants). */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+  }
 }
 
 /* ============================================

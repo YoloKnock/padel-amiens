@@ -7,6 +7,7 @@ import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from 'sonner';
 
+import { BottomNavWrapper } from '@/components/bottom-nav-wrapper';
 import './globals.css';
 
 // Viewport + theme color (separe de metadata dans Next.js 14)
@@ -73,8 +74,13 @@ export default function RootLayout({
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      {/* Padding bottom mobile pour que la bottom-nav (h-14 + safe-area)
+          ne masque pas la fin du contenu. Sur sm+ on remet à zéro. */}
+      <body className={`${inter.variable} font-sans antialiased pb-[calc(56px+env(safe-area-inset-bottom))] sm:pb-0`}>
         {children}
+        {/* Bottom nav fixe en bas sur mobile (hidden sm:hidden) — wrapper
+            server qui charge le user pour passer le compteur de non-lus. */}
+        <BottomNavWrapper />
         {/* Toaster pour les notifications (sonner) */}
         <Toaster position="top-right" />
         {/* Analytics Vercel — gratuit jusqu'à un certain volume */}

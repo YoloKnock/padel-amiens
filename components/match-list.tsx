@@ -21,9 +21,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Filter, MapPin, Search, Target, X } from 'lucide-react';
+import { Filter, MapPin, Search, SearchX, Target, X } from 'lucide-react';
 
 import { MatchRequestCard } from './match-request-card';
+import { EmptyState } from './ui/empty-state';
 import { cn } from '@/lib/utils';
 import type { MatchRequestRow } from '@/app/matchs/page';
 
@@ -369,9 +370,16 @@ export function MatchList({
 
       {/* Grille */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-muted-foreground">
-          Aucune annonce ne correspond à ces critères.
-        </div>
+        <EmptyState
+          icon={SearchX}
+          title="Aucune annonce ne correspond"
+          description="Élargis tes filtres ou poste ta propre annonce pour que d'autres joueurs te trouvent."
+          action={
+            hasFilters
+              ? { label: 'Réinitialiser les filtres', onClick: resetFilters }
+              : { label: 'Poster une annonce', href: '/matchs/nouveau' }
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((req, i) => (

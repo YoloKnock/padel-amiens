@@ -7,10 +7,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Filter, MapPin, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, MapPin, Search, SearchX, X } from 'lucide-react';
 
 import { GeolocationBanner } from './geolocation-banner';
 import { TournamentCard } from './tournament-card';
+import { EmptyState } from './ui/empty-state';
 import { CATEGORIES, GENDERS } from '@/types/tournament';
 import type { TournamentWithClub } from '@/types/tournament';
 import { distanceKm } from '@/lib/geo';
@@ -323,17 +324,20 @@ export function TournamentList({ tournaments, isLoggedIn = false }: TournamentLi
 
       {/* Grille de cards */}
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <p>Aucun tournoi ne correspond à ces critères.</p>
-          {hasFilters && (
-            <button
-              onClick={resetFilters}
-              className="mt-2 text-sm underline hover:text-foreground"
-            >
-              Réinitialiser les filtres
-            </button>
-          )}
-        </div>
+        <EmptyState
+          icon={SearchX}
+          title="Aucun tournoi ne correspond"
+          description={
+            hasFilters
+              ? 'Essaie d’élargir tes filtres : zone, catégorie ou période.'
+              : 'Le calendrier sera mis à jour demain matin à 6h. Reviens demain ou explore les centres pour réserver un créneau.'
+          }
+          action={
+            hasFilters
+              ? { label: 'Réinitialiser les filtres', onClick: resetFilters }
+              : { label: 'Trouver un créneau', href: '/jouer' }
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((t, i) => (

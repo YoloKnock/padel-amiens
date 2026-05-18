@@ -18,7 +18,6 @@
 
 'use client';
 
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   Calendar,
@@ -29,6 +28,7 @@ import {
 } from 'lucide-react';
 
 import { AnimatedCounter } from './animated-counter';
+import { LinkButton } from './ui/button';
 
 // Photo source : Wikimedia Commons — Vigo Open 2019 du World Padel Tour.
 // Choix volontaire (vs un SVG ou Unsplash) :
@@ -87,29 +87,22 @@ export function HomeHero({ stats }: HomeHeroProps) {
               même endroit, gratuit, et 100% local.
             </p>
 
-            {/* CTAs primaires */}
+            {/* CTAs primaires — migrés vers <LinkButton /> pour cohérence
+                avec le reste de l'app. Le primary garde son look distinctif
+                (shadow + hover translate) via la variante "primary". */}
             <div className="flex flex-wrap gap-3 mb-8">
-              <Link
-                href="/tournois"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all hover:shadow-lg hover:shadow-emerald-600/30 hover:-translate-y-0.5"
-              >
+              <LinkButton href="/tournois" variant="primary" size="lg" className="rounded-full">
                 <Trophy className="w-4 h-4" aria-hidden />
                 Voir les tournois
-              </Link>
-              <Link
-                href="/jouer"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-slate-200 text-sm font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
-              >
+              </LinkButton>
+              <LinkButton href="/jouer" variant="secondary" size="lg" className="rounded-full">
                 <Search className="w-4 h-4" aria-hidden />
                 Trouver un créneau
-              </Link>
-              <Link
-                href="/matchs"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-slate-200 text-sm font-medium hover:border-emerald-500 hover:text-emerald-700 transition-colors"
-              >
+              </LinkButton>
+              <LinkButton href="/matchs" variant="secondary" size="lg" className="rounded-full">
                 <MessageCircle className="w-4 h-4" aria-hidden />
                 Un partenaire
-              </Link>
+              </LinkButton>
             </div>
 
             {/* Compteurs en pills discrètes, animés au mount */}

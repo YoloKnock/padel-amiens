@@ -93,11 +93,13 @@ export async function Header() {
         <div className="flex items-center gap-2 flex-shrink-0">
           <ThemeToggle />
 
-          {/* Icône messagerie avec pastille de non-lus, visible si connecté */}
+          {/* Icône messagerie avec pastille de non-lus, visible si connecté.
+              Touch target 40px (au-dessus du min 48px ergonomique parce
+              qu'on est en desktop ; sur mobile on a la bottom nav). */}
           {isLoggedIn && (
             <Link
               href="/messages"
-              className="relative inline-flex items-center justify-center w-9 h-9 rounded-full hover:bg-slate-100 transition-colors"
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 transition-colors"
               title={
                 unreadMessages > 0
                   ? `${unreadMessages} message${unreadMessages > 1 ? 's' : ''} non lu${unreadMessages > 1 ? 's' : ''}`
@@ -146,26 +148,11 @@ export async function Header() {
         </div>
       </div>
 
-      {/* Navigation mobile — scrollable horizontal sous le header sur < sm */}
-      <nav className="sm:hidden border-t border-slate-100 bg-white/60 overflow-x-auto">
-        <div className="container mx-auto px-4 flex items-center gap-5 text-sm h-11 whitespace-nowrap">
-          <Link href="/tournois" className="font-medium hover:text-emerald-700">
-            Tournois
-          </Link>
-          <Link href="/jouer" className="font-medium hover:text-emerald-700">
-            Jouer
-          </Link>
-          <Link href="/matchs" className="font-medium hover:text-emerald-700">
-            Partenaires
-          </Link>
-          <Link
-            href="/a-propos"
-            className="text-muted-foreground hover:text-emerald-700"
-          >
-            À propos
-          </Link>
-        </div>
-      </nav>
+      {/* Sur mobile, la nav est en bas via <BottomNav /> (rendu par le
+          layout racine). On a viré la nav scroll horizontale sous le
+          header : cf. audit UX, scroll H = cognitif, l'user voyait pas
+          tout d'un coup. La bottom nav est plus standard et accessible
+          au pouce. */}
     </header>
   );
 }
