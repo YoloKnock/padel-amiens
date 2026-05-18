@@ -83,8 +83,9 @@ export function MatchRequestCard({
             )}
           </h3>
           {request.profile_city && (
-            <p className="text-xs text-muted-foreground mt-1">
-              📍 {request.profile_city}
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <MapPin className="w-3 h-3" aria-hidden />
+              {request.profile_city}
             </p>
           )}
         </div>

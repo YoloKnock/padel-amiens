@@ -18,9 +18,15 @@ import type { TournamentWithClub } from '@/types/tournament';
 interface TournamentsPreviewProps {
   tournaments: (TournamentWithClub & { distance_km: number | null })[];
   totalCount: number;
+  /** Propagé au FavoriteButton sur chaque card */
+  isLoggedIn?: boolean;
 }
 
-export function TournamentsPreview({ tournaments, totalCount }: TournamentsPreviewProps) {
+export function TournamentsPreview({
+  tournaments,
+  totalCount,
+  isLoggedIn = false,
+}: TournamentsPreviewProps) {
   // On affiche au max 6 tournois pour rester compact (2 rangées de 3 sur lg)
   const preview = tournaments.slice(0, 6);
 
@@ -71,7 +77,7 @@ export function TournamentsPreview({ tournaments, totalCount }: TournamentsPrevi
                 key={t.id}
                 className="snap-start flex-shrink-0 w-[300px] sm:w-[340px]"
               >
-                <TournamentCard tournament={t} index={i} />
+                <TournamentCard tournament={t} index={i} isLoggedIn={isLoggedIn} />
               </div>
             ))}
           </div>

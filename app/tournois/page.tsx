@@ -13,6 +13,7 @@ import { Header } from '@/components/header';
 import { TournamentList } from '@/components/tournament-list';
 import { createAdminClient } from '@/lib/supabase';
 import { distanceFromAmiens } from '@/lib/geo';
+import { getCurrentUser } from '@/lib/user';
 import type { TournamentWithClub } from '@/types/tournament';
 
 // Revalidation toutes les 5 minutes : cohérent avec le rythme de scrape
@@ -44,7 +45,10 @@ async function getTournaments(): Promise<(TournamentWithClub & { distance_km: nu
 }
 
 export default async function TournoisPage() {
-  const tournaments = await getTournaments();
+  const [tournaments, currentUser] = await Promise.all([
+    getTournaments(),
+    getCurrentUser(),
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -66,7 +70,7 @@ export default async function TournoisPage() {
       </section>
 
       <section className="container mx-auto px-4 pb-20">
-        <TournamentList tournaments={tournaments} />
+        <TournamentList tournaments={tournaments} isLoggedIn={!!currentUser} />
       </section>
     </div>
   );

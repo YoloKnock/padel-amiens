@@ -101,6 +101,11 @@ export const TournamentWithClubSchema = z.object({
   club_lng: z.number().nullable(),
   club_email: z.string().nullable(),
   club_phone: z.string().nullable(),
+  // Logo + cover du club joint via la vue upcoming_tournaments. Sert à
+  // afficher une vignette (logo plein cadre ou photo de complexe) à côté
+  // du nom du club dans les cards listings.
+  club_cover_image_url: z.string().nullable().optional(),
+  club_logo_url: z.string().nullable().optional(),
 });
 
 export type TournamentWithClub = z.infer<typeof TournamentWithClubSchema>;

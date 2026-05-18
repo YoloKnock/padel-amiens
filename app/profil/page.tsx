@@ -8,14 +8,23 @@
 import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarDays, CalendarPlus, Clock, MapPin } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarDays,
+  CalendarPlus,
+  Heart,
+  MapPin,
+  Trophy,
+} from 'lucide-react';
 
 import { DeleteMatchRequestButton } from '@/components/delete-match-request-button';
 import { Header } from '@/components/header';
 import { ProfileForm } from '@/components/profile-form';
 import { LogoutButton } from '@/components/logout-button';
+import { distanceFromAmiens } from '@/lib/geo';
 import { createAdminClient } from '@/lib/supabase';
 import { getCurrentProfile, requireUser } from '@/lib/user';
+import type { TournamentWithClub } from '@/types/tournament';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +32,45 @@ export const metadata = {
   title: 'Mon profil',
   robots: { index: false, follow: false }, // page privée
 };
+
+// ============================================
+// Récupère les tournois favoris de l'utilisateur connecté
+// ============================================
+// On fait 2 queries séparées :
+//   1) liste des tournament_id favoris
+//   2) détails des tournois (depuis la vue upcoming_tournaments) qui
+//      filtre déjà les tournois passés.
+// Plus simple que d'inventer une vue dédiée juste pour ça, et la perf est
+// négligeable (1 user a rarement 100+ favoris).
+async function getMyFavorites(
+  userId: string
+): Promise<(TournamentWithClub & { distance_km: number | null })[]> {
+  const supabase = createAdminClient();
+  const { data: favRows, error: favErr } = await supabase
+    .from('tournament_favorites')
+    .select('tournament_id')
+    .eq('user_id', userId);
+  if (favErr) {
+    console.error('[profil] favoris:', favErr);
+    return [];
+  }
+  const ids = (favRows ?? []).map((r) => r.tournament_id);
+  if (ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('upcoming_tournaments')
+    .select('*')
+    .in('id', ids)
+    .order('start_date', { ascending: true });
+  if (error) {
+    console.error('[profil] favoris details:', error);
+    return [];
+  }
+  return (data ?? []).map((t) => ({
+    ...t,
+    distance_km: distanceFromAmiens(t.club_lat, t.club_lng),
+  }));
+}
 
 // Récupère les annonces actives de l'utilisateur connecté
 async function getMyMatchRequests(userId: string) {
@@ -46,8 +94,10 @@ export default async function ProfilePage() {
   const profile = await getCurrentProfile();
   const isNew = profile === null;
 
-  // Pas d'annonces si l'utilisateur n'a pas encore créé son profil
-  const myRequests = !isNew ? await getMyMatchRequests(user.id) : [];
+  // Pas d'annonces ni favoris si l'utilisateur n'a pas encore créé son profil
+  const [myRequests, myFavorites] = !isNew
+    ? await Promise.all([getMyMatchRequests(user.id), getMyFavorites(user.id)])
+    : [[], []];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -138,6 +188,84 @@ export default async function ProfilePage() {
                         requestId={req.id}
                         variant="inline"
                       />
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {/* ============================================
+            Mes tournois favoris
+            ============================================
+            Section visible uniquement si profil créé. On limite l'affichage
+            aux 8 favoris les plus proches dans le temps avec un lien "voir
+            tout" si on dépasse. */}
+        {!isNew && (
+          <section className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Heart className="w-5 h-5 text-rose-500" />
+                Mes tournois favoris ({myFavorites.length})
+              </h2>
+              {myFavorites.length > 0 && (
+                <Link
+                  href="/tournois"
+                  className="text-xs text-emerald-700 hover:text-emerald-800 font-medium inline-flex items-center gap-1"
+                >
+                  Tous les tournois <ArrowRight className="w-3 h-3" />
+                </Link>
+              )}
+            </div>
+
+            {myFavorites.length === 0 ? (
+              <div className="text-sm text-muted-foreground bg-white rounded-xl border border-slate-200 p-4">
+                Tu n&apos;as encore favorisé aucun tournoi. Clique sur le ★ en
+                haut à droite d&apos;un tournoi pour le retrouver ici.
+              </div>
+            ) : (
+              <ul className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+                {myFavorites.slice(0, 8).map((t) => {
+                  const dateLabel = format(
+                    parseISO(t.start_date),
+                    'EEEE d MMM yyyy',
+                    { locale: fr }
+                  );
+                  return (
+                    <li key={t.id}>
+                      <Link
+                        href={`/tournoi/${t.id}`}
+                        className="block p-4 hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">
+                                {t.category}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {t.gender}
+                              </span>
+                            </div>
+                            <div className="text-sm font-medium truncate">
+                              {t.title}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1 capitalize">
+                              <CalendarDays className="w-3 h-3" />
+                              {dateLabel}
+                              {t.club_name && (
+                                <>
+                                  <span className="opacity-50 mx-0.5">·</span>
+                                  <MapPin className="w-3 h-3" />
+                                  <span className="truncate">{t.club_name}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        </div>
+                      </Link>
                     </li>
                   );
                 })}

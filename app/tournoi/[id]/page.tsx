@@ -28,11 +28,13 @@ import {
   User,
 } from 'lucide-react';
 
+import { FavoriteButton } from '@/components/favorite-button';
 import { Header } from '@/components/header';
 import { ShareButtons } from '@/components/share-buttons';
 import { CATEGORY_COLORS } from '@/lib/constants';
 import { distanceFromAmiens } from '@/lib/geo';
 import { createAdminClient } from '@/lib/supabase';
+import { getCurrentUser } from '@/lib/user';
 import { cn, formatPhone } from '@/lib/utils';
 import type { TournamentWithClub } from '@/types/tournament';
 
@@ -139,7 +141,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 // Composant page
 // ============================================
 export default async function TournoiPage({ params }: PageProps) {
-  const tournament = await getTournament(params.id);
+  const [tournament, currentUser] = await Promise.all([
+    getTournament(params.id),
+    getCurrentUser(),
+  ]);
 
   if (!tournament) notFound();
 
@@ -297,6 +302,19 @@ export default async function TournoiPage({ params }: PageProps) {
             <CalendarPlus className="w-4 h-4" />
             Ajouter à mon agenda
           </a>
+
+          {/* Bouton favori plein largeur — variante "label" plus visible
+              que l'icône discrète des cards (sur cette fiche on a la
+              place et l'utilisateur cherche explicitement le bouton). */}
+          <div className="mt-3">
+            <FavoriteButton
+              tournamentId={tournament.id}
+              isLoggedIn={!!currentUser}
+              variant="label"
+              size="md"
+              className="w-full justify-center"
+            />
+          </div>
 
           {/* Boutons de partage social (cards WhatsApp, SMS, X, copier) */}
           <div className="mt-6 pt-4 border-t border-slate-100">

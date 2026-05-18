@@ -89,6 +89,10 @@ export const EventWithClubSchema = z.object({
   club_postal_code: z.string().nullable(),
   club_lat: z.number().nullable(),
   club_lng: z.number().nullable(),
+  // Logo + cover du club joint via la vue upcoming_events. Sert à afficher
+  // une vignette dans les cards events (americano, stages, etc.).
+  club_cover_image_url: z.string().nullable().optional(),
+  club_logo_url: z.string().nullable().optional(),
 });
 
 export type EventWithClub = z.infer<typeof EventWithClubSchema>;

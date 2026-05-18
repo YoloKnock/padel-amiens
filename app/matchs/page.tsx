@@ -16,7 +16,7 @@ import { CalendarPlus, Users } from 'lucide-react';
 import { Header } from '@/components/header';
 import { MatchList } from '@/components/match-list';
 import { createAdminClient } from '@/lib/supabase';
-import { getCurrentUser } from '@/lib/user';
+import { getCurrentProfile, getCurrentUser } from '@/lib/user';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,7 +61,13 @@ async function getMatchRequests(): Promise<MatchRequestRow[]> {
 }
 
 export default async function MatchsPage() {
-  const [requests, user] = await Promise.all([getMatchRequests(), getCurrentUser()]);
+  // On charge aussi le profil du user connecté pour récupérer son level :
+  // sert au tri intelligent (annonces du même niveau en premier).
+  const [requests, user, profile] = await Promise.all([
+    getMatchRequests(),
+    getCurrentUser(),
+    getCurrentProfile(),
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -113,7 +119,12 @@ export default async function MatchsPage() {
             </Link>
           </div>
         ) : (
-          <MatchList requests={requests} currentUserId={user?.id ?? null} />
+          <MatchList
+            requests={requests}
+            currentUserId={user?.id ?? null}
+            currentUserLevel={profile?.level ?? null}
+            currentUserCity={profile?.city ?? null}
+          />
         )}
 
         {/* Note légale courte */}

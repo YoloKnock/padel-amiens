@@ -182,7 +182,11 @@ export default async function HomePage() {
       <ClubsPreview clubs={clubs} />
 
       {/* Tournois en LIGNE horizontale scrollable (demande Hugo) */}
-      <TournamentsPreview tournaments={tournaments} totalCount={stats.tournaments} />
+      <TournamentsPreview
+        tournaments={tournaments}
+        totalCount={stats.tournaments}
+        isLoggedIn={!!currentUser}
+      />
 
       {/* Partenaires (annonces matchmaking) — JUSTE EN DESSOUS des tournois.
           Caché si zéro annonce pour éviter l'effet "site mort". */}

@@ -18,10 +18,11 @@ import {
   CalendarPlus,
   Clock,
   ExternalLink,
-  MapPin,
   User,
 } from 'lucide-react';
 
+import { ClubBadge } from './club-badge';
+import { FavoriteButton } from './favorite-button';
 import { CATEGORY_GRADIENTS } from '@/lib/constants';
 import { parseTimeSlot, TIME_SLOT_LABELS } from '@/lib/tournament-helpers';
 import { cn } from '@/lib/utils';
@@ -30,6 +31,9 @@ import type { TournamentWithClub } from '@/types/tournament';
 interface TournamentCardProps {
   tournament: TournamentWithClub & { distance_km: number | null };
   index?: number;
+  /** Détermine le comportement du bouton favori : si false, le clic
+   *  redirige vers /login plutôt que de tenter un fetch raté. */
+  isLoggedIn?: boolean;
 }
 
 const GENDER_LABELS: Record<string, string> = {
@@ -38,7 +42,11 @@ const GENDER_LABELS: Record<string, string> = {
   mixte: 'Mixte',
 };
 
-export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
+export function TournamentCard({
+  tournament,
+  index = 0,
+  isLoggedIn = false,
+}: TournamentCardProps) {
   const date = parseISO(tournament.start_date);
   const formattedDate = format(date, "EEEE d MMMM yyyy", { locale: fr });
   const categoryGradient =
@@ -61,14 +69,20 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
           'h-14 bg-gradient-to-br relative flex items-center justify-between px-5',
           categoryGradient
         )}
-        aria-hidden
       >
-        <span className="text-white font-bold text-lg tracking-wide drop-shadow-sm">
+        <span className="text-white font-bold text-lg tracking-wide drop-shadow-sm" aria-hidden>
           {tournament.category}
         </span>
-        <span className="text-white/90 text-xs font-medium drop-shadow-sm">
+        <span className="text-white/90 text-xs font-medium drop-shadow-sm" aria-hidden>
           {GENDER_LABELS[tournament.gender] ?? tournament.gender}
         </span>
+      </div>
+
+      {/* Bouton favori : positionné en absolute top-right par-dessus le
+          bandeau. Le z-10 sur le bouton lui-même + e.preventDefault dans
+          le handler garantit qu'il échappe au stretched link. */}
+      <div className="absolute top-2 right-2 z-10">
+        <FavoriteButton tournamentId={tournament.id} isLoggedIn={isLoggedIn} />
       </div>
 
       {/* Stretched link : toute la card est cliquable vers la page détail interne */}
@@ -97,31 +111,17 @@ export function TournamentCard({ tournament, index = 0 }: TournamentCardProps) {
             </div>
           )}
           {tournament.club_name && (
-            <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden />
-              <div>
-                {tournament.club_id ? (
-                  <Link
-                    href={`/club/${tournament.club_id}`}
-                    className="relative z-10 font-medium text-foreground hover:text-emerald-700 transition-colors"
-                  >
-                    {tournament.club_name}
-                  </Link>
-                ) : (
-                  <span className="font-medium text-foreground">
-                    {tournament.club_name}
-                  </span>
-                )}
-                {tournament.club_city && (
-                  <div className="text-xs">
-                    {tournament.club_city}
-                    {tournament.distance_km !== null && (
-                      <span> · {tournament.distance_km} km</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            /* Vignette club : logo + nom + ville/distance. Cliquable
+                vers /club/[id] (z-10 pour échapper au stretched link
+                qui couvre toute la card). */
+            <ClubBadge
+              clubId={tournament.club_id}
+              name={tournament.club_name}
+              city={tournament.club_city}
+              logoUrl={tournament.club_logo_url}
+              distanceKm={tournament.distance_km}
+              clickable={!!tournament.club_id}
+            />
           )}
           {tournament.referee && (
             <div className="flex items-center gap-2">

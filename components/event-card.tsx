@@ -19,12 +19,12 @@ import {
   Clock,
   ExternalLink,
   Mail,
-  MapPin,
   Phone,
   Tag,
   Users,
 } from 'lucide-react';
 
+import { ClubBadge } from './club-badge';
 import { cn, formatPhone } from '@/lib/utils';
 import { EVENT_TYPE_LABELS, type EventWithClub } from '@/types/event';
 
@@ -89,14 +89,17 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
         </div>
       )}
 
-      {/* Club + ville */}
+      {/* Club + ville via ClubBadge — affiche le logo officiel quand dispo */}
       {event.club_name && (
-        <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
-          <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <div>
-            <div className="font-medium text-foreground">{event.club_name}</div>
-            {event.club_city && <div>{event.club_city}</div>}
-          </div>
+        <div className="mb-3">
+          <ClubBadge
+            clubId={event.club_id}
+            name={event.club_name}
+            city={event.club_city}
+            logoUrl={event.club_logo_url}
+            distanceKm={event.distance_km}
+            clickable={!!event.club_id}
+          />
         </div>
       )}
 

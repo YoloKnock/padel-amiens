@@ -20,6 +20,8 @@ import { cn } from '@/lib/utils';
 
 interface TournamentListProps {
   tournaments: (TournamentWithClub & { distance_km: number | null })[];
+  /** Propagé au FavoriteButton sur chaque card (redirige vers /login si false) */
+  isLoggedIn?: boolean;
 }
 
 // Options de distance pour le filtre
@@ -55,7 +57,7 @@ function normalize(s: string): string {
     .replace(/[̀-ͯ]/g, '');
 }
 
-export function TournamentList({ tournaments }: TournamentListProps) {
+export function TournamentList({ tournaments, isLoggedIn = false }: TournamentListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
@@ -335,7 +337,7 @@ export function TournamentList({ tournaments }: TournamentListProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((t, i) => (
-            <TournamentCard key={t.id} tournament={t} index={i} />
+            <TournamentCard key={t.id} tournament={t} index={i} isLoggedIn={isLoggedIn} />
           ))}
         </div>
       )}
