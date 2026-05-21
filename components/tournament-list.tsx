@@ -12,6 +12,7 @@ import { ChevronDown, ChevronUp, Filter, MapPin, Search, SearchX, X } from 'luci
 import { GeolocationBanner } from './geolocation-banner';
 import { TournamentCard } from './tournament-card';
 import { EmptyState } from './ui/empty-state';
+import { FiltersDrawer } from './ui/filters-drawer';
 import { CATEGORIES, GENDERS } from '@/types/tournament';
 import type { TournamentWithClub } from '@/types/tournament';
 import { distanceKm } from '@/lib/geo';
@@ -62,7 +63,12 @@ export function TournamentList({ tournaments, isLoggedIn = false }: TournamentLi
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
-  const [maxDistance, setMaxDistance] = useState<number | null>(null);
+  // Smart default "proche d'Amiens" (30 km) : un Amiénois doit voir ce
+  // qui le concerne EN PREMIER, pas l'intégralité des Hauts-de-France.
+  // Si la geoloc est active, on prend la position du user à la place de
+  // Cagny (cf. useMemo `enriched` plus bas). L'utilisateur peut élargir
+  // d'un clic sur "Toutes" pour scanner toute la région.
+  const [maxDistance, setMaxDistance] = useState<number | null>(30);
   // Par défaut "Cette semaine" : evite d'afficher 99 tournois d'un coup sur la
   // home. L'utilisateur peut élargir avec un clic sur "Toutes" / "Ce mois" /
   // "3 prochains mois".
@@ -156,6 +162,15 @@ export function TournamentList({ tournaments, isLoggedIn = false }: TournamentLi
     maxDays !== null ||
     dayType !== null;
 
+  // Compteur pour le badge du bouton "Filtres" mobile
+  const activeFilterCount =
+    (searchQuery.trim().length > 0 ? 1 : 0) +
+    (selectedCategory ? 1 : 0) +
+    (selectedGender ? 1 : 0) +
+    (maxDistance !== null ? 1 : 0) +
+    (maxDays !== null ? 1 : 0) +
+    (dayType !== null ? 1 : 0);
+
   function resetFilters() {
     setSearchQuery('');
     setSelectedCategory(null);
@@ -171,8 +186,9 @@ export function TournamentList({ tournaments, isLoggedIn = false }: TournamentLi
           ou si l'utilisateur a cliqué "plus tard" */}
       <GeolocationBanner message="Active ta position pour voir les tournois autour de toi (sinon on calcule depuis Cagny par défaut)." />
 
-      {/* Barre de filtres */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
+      {/* Filtres : drawer mobile (économise l'espace écran), inline desktop */}
+      <FiltersDrawer activeCount={activeFilterCount}>
+      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4 sm:bg-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Filter className="w-4 h-4" />
@@ -188,6 +204,57 @@ export function TournamentList({ tournaments, isLoggedIn = false }: TournamentLi
             </button>
           )}
         </div>
+
+        {/* ============================================
+            Chips de filtres ACTIFS (pattern Airbnb / Booking)
+            ============================================
+            Comme le filtre distance 30 km est appliqué par défaut, on rend
+            l'info visible ici : l'user comprend tout de suite que la liste
+            est filtrée, et peut retirer chaque critère en 1 click. */}
+        {hasFilters && (
+          <div className="flex flex-wrap gap-1.5 pb-1 border-b border-slate-100">
+            {maxDistance !== null && (
+              <ActiveFilterChip
+                label={
+                  userLocation
+                    ? `≤ ${maxDistance} km de moi`
+                    : `≤ ${maxDistance} km d'Amiens`
+                }
+                onRemove={() => setMaxDistance(null)}
+              />
+            )}
+            {maxDays !== null && (
+              <ActiveFilterChip
+                label={PERIOD_OPTIONS.find((o) => o.value === maxDays)?.label ?? ''}
+                onRemove={() => setMaxDays(null)}
+              />
+            )}
+            {selectedCategory && (
+              <ActiveFilterChip
+                label={selectedCategory}
+                onRemove={() => setSelectedCategory(null)}
+              />
+            )}
+            {selectedGender && (
+              <ActiveFilterChip
+                label={selectedGender}
+                onRemove={() => setSelectedGender(null)}
+              />
+            )}
+            {dayType && (
+              <ActiveFilterChip
+                label={DAY_TYPE_OPTIONS.find((o) => o.value === dayType)?.label ?? ''}
+                onRemove={() => setDayType(null)}
+              />
+            )}
+            {searchQuery.trim().length > 0 && (
+              <ActiveFilterChip
+                label={`"${searchQuery.trim()}"`}
+                onRemove={() => setSearchQuery('')}
+              />
+            )}
+          </div>
+        )}
 
         {/* ============================================
             Filtres essentiels (toujours visibles)
@@ -315,6 +382,7 @@ export function TournamentList({ tournaments, isLoggedIn = false }: TournamentLi
           </div>
         )}
       </div>
+      </FiltersDrawer>
 
       {/* Compteur de résultats */}
       <div className="text-sm text-muted-foreground">
@@ -384,6 +452,33 @@ function FilterChip({
       )}
     >
       {children}
+    </button>
+  );
+}
+
+// ============================================
+// ActiveFilterChip — affiche un filtre en cours avec un X pour le retirer
+// ============================================
+// Pattern Airbnb / Booking : chips bleus sous le titre "Filtres" qui
+// listent ce qui est appliqué. Click sur le X = retire ce critère uniquement.
+function ActiveFilterChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      title="Retirer ce filtre"
+      className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium hover:bg-emerald-200 transition-colors group"
+    >
+      <span>{label}</span>
+      <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-200 group-hover:bg-emerald-300">
+        <X className="w-2.5 h-2.5" />
+      </span>
     </button>
   );
 }

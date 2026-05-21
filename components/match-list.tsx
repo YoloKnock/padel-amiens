@@ -25,6 +25,7 @@ import { Filter, MapPin, Search, SearchX, Target, X } from 'lucide-react';
 
 import { MatchRequestCard } from './match-request-card';
 import { EmptyState } from './ui/empty-state';
+import { FiltersDrawer } from './ui/filters-drawer';
 import { cn } from '@/lib/utils';
 import type { MatchRequestRow } from '@/app/matchs/page';
 
@@ -205,6 +206,13 @@ export function MatchList({
     levelFilter !== null ||
     cityFilter !== null;
 
+  // Compteur pour le badge du bouton "Filtres" mobile (drawer)
+  const activeFilterCount =
+    (searchQuery.trim().length > 0 ? 1 : 0) +
+    (period !== 'all' ? 1 : 0) +
+    (levelFilter !== null ? 1 : 0) +
+    (cityFilter !== null ? 1 : 0);
+
   function resetFilters() {
     setSearchQuery('');
     setPeriod('all');
@@ -215,8 +223,9 @@ export function MatchList({
   return (
     <div className="space-y-6">
       {/* ============================================
-          Barre de filtres
+          Barre de filtres : drawer mobile / inline desktop
           ============================================ */}
+      <FiltersDrawer activeCount={activeFilterCount}>
       <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium">
@@ -359,6 +368,7 @@ export function MatchList({
           </div>
         )}
       </div>
+      </FiltersDrawer>
 
       {/* Compteur */}
       <div className="text-sm text-muted-foreground">

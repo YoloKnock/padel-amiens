@@ -49,7 +49,22 @@ interface HomeHeroProps {
   };
 }
 
+// ============================================
+// Seuils d'affichage des stats — anti "site vide"
+// ============================================
+// Un visiteur qui voit "3 joueurs" se dit "personne n'utilise ce truc".
+// On masque les compteurs jusqu'à ce qu'ils soient crédibles. Tournois
+// est toujours affiché parce qu'il vient du scraper FFT (toujours rempli).
+const STAT_THRESHOLDS = {
+  players: 10,
+  matchRequests: 3,
+};
+
 export function HomeHero({ stats }: HomeHeroProps) {
+  // Stats à afficher dans la rangée de pills (filtre seuils)
+  const showPlayers = stats.players >= STAT_THRESHOLDS.players;
+  const showMatchRequests = stats.matchRequests >= STAT_THRESHOLDS.matchRequests;
+
   return (
     <section className="relative overflow-hidden border-b border-slate-200">
       {/* Background pattern subtil — décoratif uniquement */}
@@ -105,13 +120,15 @@ export function HomeHero({ stats }: HomeHeroProps) {
               </LinkButton>
             </div>
 
-            {/* Compteurs en pills discrètes, animés au mount */}
+            {/* Compteurs en pills discrètes, animés au mount.
+                Filtre par seuil (cf. STAT_THRESHOLDS) pour éviter le
+                signal "vide" sur les premiers compteurs. */}
             <div className="flex flex-wrap gap-3">
               <Stat icon={Calendar} value={stats.tournaments} label="tournois" />
-              {stats.players > 0 && (
-                <Stat icon={Users} value={stats.players} label={stats.players > 1 ? 'joueurs' : 'joueur'} />
+              {showPlayers && (
+                <Stat icon={Users} value={stats.players} label="joueurs" />
               )}
-              {stats.matchRequests > 0 && (
+              {showMatchRequests && (
                 <Stat
                   icon={MessageCircle}
                   value={stats.matchRequests}
@@ -151,19 +168,21 @@ export function HomeHero({ stats }: HomeHeroProps) {
                 className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10"
                 aria-hidden
               />
-              {/* Pastilles flottantes : preuves sociales discrètes */}
+              {/* Pastilles flottantes : preuves sociales discrètes.
+                  Idem que les Stat pills : on masque "Communauté locale"
+                  tant qu'on n'a pas atteint le seuil — pas crédible avec
+                  3 joueurs. À la place, on garde "Tous les centres locaux"
+                  qui est factuel et toujours vrai. */}
               <FloatingPill
                 className="top-6 left-6"
                 icon={Trophy}
                 text={`${stats.tournaments} tournois FFT`}
               />
-              {stats.players > 0 && (
-                <FloatingPill
-                  className="bottom-6 right-6"
-                  icon={Users}
-                  text="Communauté locale"
-                />
-              )}
+              <FloatingPill
+                className="bottom-6 right-6"
+                icon={Users}
+                text={showPlayers ? 'Communauté locale' : 'Tous les centres d\'Amiens'}
+              />
             </div>
 
             {/* Mini visuel décoratif sous l'image (forme abstraite emerald) */}

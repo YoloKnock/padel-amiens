@@ -10,7 +10,27 @@ import { ArrowLeft } from 'lucide-react';
 
 import { Header } from '@/components/header';
 import { MatchRequestForm } from '@/components/match-request-form';
+import { createAdminClient } from '@/lib/supabase';
 import { getCurrentProfile, requireUser } from '@/lib/user';
+
+// Récupère les clubs locaux pour pré-remplir le dropdown du formulaire.
+// On limite à ceux d'Amiens et alentours (postal_code 80*) parce que la
+// majorité des annonces seront pour ces clubs ; les autres clubs restent
+// accessibles via l'option "Autre".
+async function getKnownClubs(): Promise<{ id: string; name: string; city: string | null }[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from('clubs')
+      .select('id, name, city')
+      .order('name', { ascending: true })
+      .limit(50);
+    return data ?? [];
+  } catch (error) {
+    console.warn('[matchs/nouveau] fetch clubs:', error);
+    return [];
+  }
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +41,10 @@ export const metadata = {
 
 export default async function NouveauMatchPage() {
   await requireUser();
-  const profile = await getCurrentProfile();
+  const [profile, clubs] = await Promise.all([
+    getCurrentProfile(),
+    getKnownClubs(),
+  ]);
 
   // Pas de profil = on force la création avant de pouvoir poster
   if (!profile) redirect('/profil?next=/matchs/nouveau');
@@ -46,7 +69,7 @@ export default async function NouveauMatchPage() {
         </p>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <MatchRequestForm defaultLocation={profile.city} />
+          <MatchRequestForm defaultLocation={profile.city} clubs={clubs} />
         </div>
       </main>
     </div>
